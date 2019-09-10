@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(-1, '/usr/local/lib/python2.7/site-packages')
+sys.path.insert(-1, '/usr/local/lib/python2.7/dist-packages')
 
 import time
 import os

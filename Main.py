@@ -1,6 +1,6 @@
 import sys
 import os
-sys.path.insert(-1, '/usr/local/lib/python2.7/site-packages')
+sys.path.insert(-1, '/usr/local/lib/python2.7/dist-packages')
 import argparse
 
 from module.ParserYahooFin.get_yahoo_fin import download_quotes as parser_day_info
@@ -13,9 +13,9 @@ from module.XMLWriter.XMLGenerator import xml_writer
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--xml_bs_pth', type=str, required=False, \
-        default= '/Users/Wiz/Desktop/Shield/data')
+        default= 'data')
     parser.add_argument('--chrome_driver_path', type=str, required=False, \
-        default= '/Users/Wiz/.wdm/chromedriver/2.46/mac64/chromedriver')
+        default= '/usr/local/share/chromedriver')
     parser.add_argument('--account', type=str, required=True, \
         default= '---')
     parser.add_argument('--password', type=str, required=True, \
@@ -27,10 +27,10 @@ if __name__ == '__main__':
     obj = Parser(param)
     obj.parser_Login_Selenium()
     stock_num_list = []
-    finish_stock_num_list = os.listdir('/Users/Wiz/Desktop/Shield/data')
+    finish_stock_num_list = os.listdir('data')
     count = len(finish_stock_num_list)
 
-    with open('/Users/Wiz/Desktop/Shield/stock_num.txt', 'r') as f_r:
+    with open('stock_num.txt', 'r') as f_r:
         for line in f_r.readlines():
             stock_num_list.append(line.strip()[0:4])
 
