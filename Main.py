@@ -12,17 +12,18 @@ from module.XMLWriter.XMLGenerator import xml_writer
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--xml_bs_pth', type=str, required=False, \
+    parser.add_argument('--xml_bs_pth', type=str, \
         default= 'data')
-    parser.add_argument('--chrome_driver_path', type=str, required=False, \
+    parser.add_argument('--chrome_driver_path', type=str, \
         default= '/usr/local/share/chromedriver')
     parser.add_argument('--account', type=str, required=True, \
         default= '---')
     parser.add_argument('--password', type=str, required=True, \
         default= '---')
+    parser.add_argument('--config_path', type=str)
     return parser.parse_args()
 
-if __name__ == '__main__':
+def main():
     param = get_args()
     obj = Parser(param)
     obj.parser_Login_Selenium()
@@ -63,5 +64,12 @@ if __name__ == '__main__':
         obj.clear()
         count += 1
 
-    #print (obj.week_report_dict, obj.quar_report_dict, obj.mth_report_dict)
-        
+#def main():
+#	param = get_args()
+#	boss = Boss(get_stock_name_list())
+#	boss.load_config(param.config_path)
+#	boss.hire_worker()
+#	boss.assign_task()
+
+if __name__ == '__main__':
+    main()
