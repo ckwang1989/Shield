@@ -169,9 +169,9 @@ class Parser(object):
         submit_button = self.driver.find_element_by_link_text('CSV 下載')
         submit_button.click()
 
-    def parser_STOCK_DAY_TWSE(self, typ, y=109, m=3, d=30, stock_no=0000):
-        url = 'https://www.twse.com.tw/exchangeReport/{}?response=csv&date={}{}{}&stockNo={}' \
-            .format(typ, y+1911, '%02d'%m, '%02d'%d, stock_no)
+    def parser_STOCK_DAY_TWSE(self, typ, y=109, m=3, stock_no=0000):
+        url = 'https://www.twse.com.tw/exchangeReport/{}?response=csv&date={}{}01&stockNo={}' \
+            .format(typ, y+1911, '%02d'%m, stock_no)
         print (url)
         soup = self.get_soup(url)
 
