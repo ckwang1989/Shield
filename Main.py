@@ -46,11 +46,11 @@ def main():
                 for y in range(99, 109+1):
                     for m in range(1, 12+1):
 #                        for d in range(1, 31+1):
-#                            try:
-                            if 1:
+                            try:
+#                            if 1:
                                 obj.parser_STOCK_DAY_TWSE(typ, y, m, stock_no)
                                 # obj.parser_general_TWSE(typ, y, m, d)
-#                            except:
+                            except:
                                 print (y, m)
                             time.sleep(3)
         #    try:
