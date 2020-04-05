@@ -1,6 +1,6 @@
 import sys
 import os
-sys.path.insert(-1, '/usr/local/lib/python2.7/dist-packages')
+#sys.path.insert(-1, '/usr/local/lib/python2.7/dist-packages')
 import argparse
 
 from module.ParserYahooFin.get_yahoo_fin import download_quotes as parser_day_info
