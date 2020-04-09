@@ -6,8 +6,10 @@ import argparse
 from module.ParserYahooFin.get_yahoo_fin import download_quotes as parser_day_info
 from module.ParserStatement.get_statement import Parser
 from module.XMLWriter.XMLGenerator import xml_writer
-#import initial
 
+def check_folder(p):
+    if not os.path.exists(p):
+        os.makedirs(p)
 
 
 def get_args():
@@ -25,10 +27,11 @@ def get_args():
 
 def main():
     param = get_args()
+    check_folder(os.path.join(os.getcwd(), param.xml_bs_pth))
     obj = Parser(param)
     obj.parser_Login_Selenium()
     stock_num_list = []
-    finish_stock_num_list = os.listdir('data')
+    finish_stock_num_list = os.listdir(os.path.join(os.getcwd(), param.xml_bs_pth))
     count = len(finish_stock_num_list)
 
     with open('stock_num.txt', 'r') as f_r:

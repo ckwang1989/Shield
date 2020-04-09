@@ -128,12 +128,14 @@ class Parser(object):
             'sheet-interval-current-option-text')))
         time.sleep(2)
         temp = self.driver.find_element_by_xpath(\
-            '//*[@class="sheet-ctrl-dropdown-menu sheet-interval-options-list"]/li[4]')
+            '//*[@id="report_title"]/table/tbody/tr/td[1]/ul/li[4]')
         self.driver.execute_script("arguments[0].click();", temp)
 
         s1 = Select(self.driver.find_element_by_xpath(\
             '//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[1]/select[1]'))
-        s1.select_by_index(1)
+        s1.select_by_value('2001')
+        
+        self.driver.find_element_by_xpath('//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[3]/div').click()
         #self.driver.execute_script("arguments[0].click();", temp)
 
         time.sleep(2)
