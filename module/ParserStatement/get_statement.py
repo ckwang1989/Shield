@@ -22,7 +22,7 @@ import argparse
 
 import copy
 
-
+from selenium.webdriver.support.ui import Select
 
 class Parser(object):
     # all_dict:
@@ -128,12 +128,18 @@ class Parser(object):
             'sheet-interval-current-option-text')))
         time.sleep(2)
         temp = self.driver.find_element_by_xpath(\
-            '//*[@class="sheet-ctrl-dropdown-menu sheet-interval-options-list"]/li[3]')
+            '//*[@class="sheet-ctrl-dropdown-menu sheet-interval-options-list"]/li[4]')
         self.driver.execute_script("arguments[0].click();", temp)
+
+        s1 = Select(self.driver.find_element_by_xpath(\
+            '//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[1]/select[1]'))
+        s1.select_by_index(1)
+        #self.driver.execute_script("arguments[0].click();", temp)
+
         time.sleep(2)
         soup = (BeautifulSoup(self.driver.page_source,"lxml"))
         return soup
-
+#//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[1]/select[1]/option[1]
     def get_soup_2(self, url):
         response = requests.get(url)
         soup = BeautifulSoup(response.text,'lxml')
