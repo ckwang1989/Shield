@@ -4,8 +4,9 @@ import os
 import argparse
 
 from module.ParserYahooFin.get_yahoo_fin import download_quotes as parser_day_info
-from module.ParserTWSE.get_twse import Parser
+from module.ParserETF.get_etf import Parser
 from module.XMLWriter.XMLGenerator import xml_writer
+from module.General.lib import dict_to_json_file, json_file_to_dict
 #import initial
 import time
 
@@ -31,43 +32,21 @@ def main():
     stock_num_list = []
     finish_stock_num_list = os.listdir('data')
     count = len(finish_stock_num_list)
+    d_all_etf = {}
+    j_p='etf.json'
 
-    with open('stock_num_twse.txt', 'r') as f_r:
+    with open('etf_symbol.txt', 'r') as f_r:
         for line in f_r.readlines():
-            stock_num_list.append(line.strip()[0:4])
-    if True:
-        stock_num = 2002
-#    for stock_num in stock_num_list:
-        #if stock_num in finish_stock_num_list:
-        #    continue
-        print ('right now is {}, still have {} stock unfinish'.format(stock_num, len(stock_num_list) - count))
-        for stock_no in stock_num_list:
-            for typ in ['STOCK_DAY']:
-                for y in range(99, 109+1):
-                    for m in range(1, 12+1):
-#                        for d in range(1, 31+1):
-                            try:
-#                            if 1:
-                                obj.parser_STOCK_DAY_TWSE(typ, y, m, stock_no)
-                                # obj.parser_general_TWSE(typ, y, m, d)
-                            except:
-                                print (y, m)
-                            time.sleep(3)
-        #    try:
-        #        parser_day_info('{}.TW'.format(stock_num))
-        #    except:
-        #        parser_day_info('{}.TWO'.format(stock_num))
-        #    xml_writer(obj.dict_all, obj.xml_bs_pth, stock_num)
-        #except:
-        #    print ('{} has something wrong'.format(stock_num))
+            stock_num_list.append(line.strip())
 
+    for stock_no in stock_num_list:
+        d_one_eft = obj.parser_moneydj_ETF_stock_holding(stock_no)
+        etf_capital = obj.parser_moneydj_ETF_capital(stock_no)
+        d_all_etf[stock_no] = {'capital': etf_capital, 'holding': d_one_eft}
 
-#def main():
-#	param = get_args()
-#	boss = Boss(get_stock_name_list())
-#	boss.load_config(param.config_path)
-#	boss.hire_worker()
-#	boss.assign_task()
+    dict_to_json_file(d_all_etf, j_p)
+    d = json_file_to_dict(j_p)
+
 
 if __name__ == '__main__':
     main()
