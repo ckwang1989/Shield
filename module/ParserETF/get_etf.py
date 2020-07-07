@@ -24,6 +24,22 @@ import copy
 
 import json
 
+def get_etf_insert_idx(etfs, capital):
+    for i, etf in enumerate(etfs):
+        if capital > etf['capital']:
+            return i 
+    return len(etfs)
+    
+def get_symbols(etfs):
+    etf_symbols = []
+    symbols = []
+    for etf in etfs:
+        for symbol in etf['holding'].keys():
+            if symbol not in symbols:
+                etf_symbols.append({'etf_symbol': etf['etf_symbol'], 'symbol': symbol, 'holding': etf['holding'][symbol]})
+                symbols.append(symbol)
+    return etf_symbols
+
 class Parser(object):
     # all_dict:
     # { '20112': {'eps': 0.7, 'free_cash': 0.8, .....}  \
@@ -159,7 +175,7 @@ class Parser(object):
         return soup
 
     def split_symbol_holding(self, i, symbol_tags, holding_tags):
-        return symbol_tags['href'].split('&')[1].split('=')[1].split('.')[0], holding_tags.text
+        return symbol_tags['href'].split('&')[1].split('=')[1].split('.US')[0], holding_tags.text
 
     def parser_moneydj_ETF_capital(self, etf):
         url = f'https://www.moneydj.com/ETF/X/Basic/Basic0004.xdjhtm?etfid={etf}'
@@ -173,7 +189,8 @@ class Parser(object):
             t = symbol_tags[i].text
             if '(百萬美元)' in t:
                 #print ('1: ', symbol_tags[i].text)
-                return t.split('(')[0]
+
+                return float(self.cancel_point(t.split('(')[0]))
 
     def parser_moneydj_ETF_stock_holding(self, etf):
         url = f'https://www.moneydj.com/ETF/X/Basic/Basic0007B.xdjhtm?etfid={etf}'
