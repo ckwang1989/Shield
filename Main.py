@@ -10,6 +10,9 @@ from module.General.lib import dict_to_json_file, json_file_to_dict
 import finviz
 import time
 
+sys.path.insert(0, '/Users/Wiz/Desktop/wang_fund/CAPTCapital')
+from correlation import correlation_day
+
 analysis_statement_status = 1  #0: don't care, 1: basic(volume & optionable), 2: all function in analysis_statement()
 
 def analysis_statement(stock_name):
@@ -85,7 +88,9 @@ def main():
     print (etf_symbols)
     for stock in etf_symbols:
         if analysis_statement(stock['symbol'].replace('.', '-')):
-            wants.append(f'{stock["symbol"]}-{stock["etf_symbol"]}')
+            stock_symbol = obj.cancel_point(stock["symbol"], '.') if '.' in stock["symbol"] else stock["symbol"]
+            days =correlation_day(stock_symbol, stock["etf_symbol"])
+            wants.append(f'{stock["symbol"]}-{stock["etf_symbol"]}-{days}')
 
     with open('stock_num.txt', 'w') as f_w:
         f_w.write('\n'.join(wants))
