@@ -73,8 +73,13 @@ def main():
             need_etf.append(line.strip())
 
     for etf_symbol in need_etf:
+        count = 0
+        etf_capital = None
         one_eft = obj.parser_moneydj_ETF_stock_holding(etf_symbol)
-        etf_capital = obj.parser_moneydj_ETF_capital(etf_symbol)
+        while etf_capital == None and count < 3:
+            etf_capital = obj.parser_moneydj_ETF_capital(etf_symbol)
+            count += 1
+        print (etf_symbol, etf_capital)
         etfs.insert(get_etf_insert_idx(etfs, etf_capital), {'etf_symbol': etf_symbol, 'capital': etf_capital, 'holding': one_eft})
     etf_symbols = get_symbols(etfs)
     print (etf_symbols)

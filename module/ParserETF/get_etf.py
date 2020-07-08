@@ -194,6 +194,7 @@ class Parser(object):
 
     def parser_moneydj_ETF_stock_holding(self, etf):
         url = f'https://www.moneydj.com/ETF/X/Basic/Basic0007B.xdjhtm?etfid={etf}'
+        print ('url: ', url)
         soup = self.get_soup(url)
         d = {}
 #        submit_button = self.driver.find_element_by_class_name('next')
