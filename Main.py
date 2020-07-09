@@ -87,10 +87,11 @@ def main():
     etf_symbols = get_symbols(etfs)
     print (etf_symbols)
     for stock in etf_symbols:
+        print (f'{stock}')
         if analysis_statement(stock['symbol'].replace('.', '-')):
             stock_symbol = obj.cancel_point(stock["symbol"], '.') if '.' in stock["symbol"] else stock["symbol"]
-            days =correlation_day(stock_symbol, stock["etf_symbol"])
-            wants.append(f'{stock["symbol"]}-{stock["etf_symbol"]}-{days}')
+            days, days_month, days_quarter =correlation_day(stock_symbol, stock["etf_symbol"])
+            wants.append(f'{stock["symbol"]}-{stock["etf_symbol"]}-{days}-{days_month}-{days_quarter}')
 
     with open('stock_num.txt', 'w') as f_w:
         f_w.write('\n'.join(wants))
