@@ -7,10 +7,86 @@ from module.ParserYahooFin.get_yahoo_fin import download_quotes as parser_day_in
 from module.ParserStatement.get_statement import Parser
 from module.XMLWriter.XMLGenerator import xml_writer
 
-def check_folder(p):
-    if not os.path.exists(p):
-        os.makedirs(p)
+import multiprocessing
+from multiprocessing import Process
+from multiprocessing import queues
 
+import copy
+
+import finviz
+
+import pandas as pd
+
+class Trader(object):
+    def __init__(self):
+        self.obj = Parser(param)
+        self.obj.parser_Login_Selenium()
+
+    def analysis_statement(self, stock_name):
+        stock_dict = finviz.get_stock(stock_name)
+        print (stock_dict)
+        if stock_dict['Optionable'] != 'Yes':
+            return False
+
+    def analysis_document(self, workers_num, stock_queues):
+        while not stock_queues.empty():
+            stock_name = stock_queues.get()
+            if not self.analysis_statement(stock_name):
+                continue
+            self.obj.parser_earning(stock_name)
+
+    def analysis_document_single(self, stock):
+        return self.obj.parser_earning(stock)
+        
+        
+
+class Boss(object):
+    def __init__(self, stock_name_list):
+        self.num_worker = 1
+        self.stock_queues = queues.Queue(len(stock_name_list), ctx=multiprocessing)
+        for stock_name in stock_name_list:
+            self.stock_queues.put(stock_name)
+        self.workers = []
+
+    def hire_worker(self):
+        """
+        using multiprocess to process .csv, we will enable self.num_worker thread to process data
+        """
+        for i in range(self.num_worker):
+            trader = copy.deepcopy(Trader())
+            print ('worker {}'.format(i))
+            self.workers.append(trader)
+
+    def assign_task(self):
+        for i in range(self.num_worker):
+            p = Process(target=self.workers[i].analysis_document, args=(i, self.stock_queues,))
+            p.start()
+            p.join(timeout=0.1)
+        #self.workers[0].analysis_document(0, self.stock_queues)
+
+        print ('assign task finish!')
+
+
+
+
+def get_stock_name_list():
+    from finviz.screener import Screener
+
+    filters = ['geo_usa', 'sh_avgvol_o1000', 'sh_opt_option']  # Shows companies in NASDAQ which are in the S&P500
+    # Get the first 50 results sorted by price ascending
+    stock_list = Screener(filters=filters)
+
+#    # Export the screener results to .csv
+#    stock_list.to_csv()
+
+#    # Create a SQLite database
+#    stock_list.to_sqlite()
+
+    stock_name_list = []
+    for stock_dict in stock_list.data:
+        stock_name_list.append(stock_dict['Ticker'])
+    print (stock_name_list)
+    return stock_name_list
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -22,57 +98,24 @@ def get_args():
         default= '---')
     parser.add_argument('--password', type=str, required=True, \
         default= '---')
-    parser.add_argument('--config_path', type=str)
     return parser.parse_args()
 
-def main():
-    param = get_args()
-    check_folder(os.path.join(os.getcwd(), param.xml_bs_pth))
-    obj = Parser(param)
-    obj.parser_Login_Selenium()
-    stock_num_list = []
-    finish_stock_num_list = os.listdir(os.path.join(os.getcwd(), param.xml_bs_pth))
-    count = len(finish_stock_num_list)
 
-    with open('stock_num.txt', 'r') as f_r:
-        for line in f_r.readlines():
-            stock_num_list.append(line.strip()[0:4])
+param = get_args()
 
-    for stock_num in stock_num_list:
-        if stock_num in finish_stock_num_list:
-            continue
-        print ('right now is {}, still have {} stock unfinish'.format(stock_num, len(stock_num_list) - count))
-        try:
-            obj.parser_eps(stock_num)
-            obj.parser_book_value(stock_num)
-            obj.parser_cash_flow(stock_num)
-            obj.parser_profit_margin(stock_num)
-            obj.parser_non_oper_income(stock_num)
-            obj.parser_roe(stock_num)
-            obj.parser_oper_cash_flow_income_rate(stock_num)
-            obj.parser_turnover_days(stock_num)
+#multi-process
+#boss = Boss(get_stock_name_list())
+#boss.hire_worker()
+#boss.assign_task()
 
-            obj.parser_price_earnings_ratio(stock_num)
-            obj.parser_mth_revenue_growth_rate(stock_num)
-            obj.parser_average_dividend_yield(stock_num)
+#single-process
 
-            obj.parser_stock_holders(stock_num)
-            try:
-                parser_day_info('{}.TW'.format(stock_num))
-            except:
-                parser_day_info('{}.TWO'.format(stock_num))
-            xml_writer(obj.dict_all, obj.xml_bs_pth, stock_num)
-        except:
-            print ('{} has something wrong'.format(stock_num))
-        obj.clear()
-        count += 1
+if not os.path.exists('earning'):
+    os.makedirs('earning')
 
-#def main():
-#	param = get_args()
-#	boss = Boss(get_stock_name_list())
-#	boss.load_config(param.config_path)
-#	boss.hire_worker()
-#	boss.assign_task()
-
-if __name__ == '__main__':
-    main()
+t = Trader()
+for s in get_stock_name_list():
+    print (s)
+    d = t.analysis_document_single(s)
+    df = pd.DataFrame(d, columns= list(d.keys()))
+    df.to_csv(f'earning/{s}.csv')

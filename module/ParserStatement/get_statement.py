@@ -166,6 +166,34 @@ class Parser(object):
         soup = (BeautifulSoup(self.driver.page_source,"lxml"))
         return soup
 
+    def get_soup_4(self, url):
+        self.driver.get(url)
+#        wait = WebDriverWait(self.driver, 1)
+#        time.sleep(2)
+        soup = (BeautifulSoup(self.driver.page_source,"lxml"))
+        return soup
+    
+
+    def parser_earning(self, symbol):
+        url = f'https://www.streetinsider.com/dr/eps-ticker.php?q={symbol}#'
+        soup = self.get_soup_4(url)
+        symbol_tags = soup.select('tr.summaryRow')
+        d = {'date': [], 'qtr': [], 'eps': [], 'surprise': []}
+        
+        for symbol_info in symbol_tags:
+            tds = symbol_info.select('td')
+
+            date = tds[0]
+            qtr = tds[1]
+            eps = tds[2]
+            surprise = tds[3]
+            d['date'].append(date)
+            d['qtr'].append(qtr)
+            d['eps'].append(eps)
+            d['surprise'].append(surprise)
+
+        return d
+
     def parser_eps(self, stock_num):
         self.stock_num = stock_num
         url = 'https://statementdog.com/analysis/tpe/{}/eps'.format(stock_num)
