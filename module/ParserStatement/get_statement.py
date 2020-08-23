@@ -177,22 +177,29 @@ class Parser(object):
     def parser_earning(self, symbol):
         url = f'https://www.streetinsider.com/dr/eps-ticker.php?q={symbol}#'
         soup = self.get_soup_4(url)
+        soup_str = str(soup)
+        if 'After Close' in soup_str:
+            typ = 'AMC'
+        elif 'Before Open' in soup_str:
+            typ = 'BMO'
+        else:
+            typ = 'Fail'
         symbol_tags = soup.select('tr.summaryRow')
         d = {'date': [], 'qtr': [], 'eps': [], 'surprise': []}
         
         for symbol_info in symbol_tags:
             tds = symbol_info.select('td')
 
-            date = tds[0]
-            qtr = tds[1]
-            eps = tds[2]
-            surprise = tds[3]
+            date = tds[0].text
+            qtr = tds[1].text
+            eps = tds[2].text
+            surprise = tds[3].text
             d['date'].append(date)
             d['qtr'].append(qtr)
             d['eps'].append(eps)
             d['surprise'].append(surprise)
 
-        return d
+        return d, typ
 
     def parser_eps(self, stock_num):
         self.stock_num = stock_num

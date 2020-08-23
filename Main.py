@@ -116,6 +116,6 @@ if not os.path.exists('earning'):
 t = Trader()
 for s in get_stock_name_list():
     print (s)
-    d = t.analysis_document_single(s)
+    d,typ = t.analysis_document_single(s)
     df = pd.DataFrame(d, columns= list(d.keys()))
-    df.to_csv(f'earning/{s}.csv')
+    df.to_csv(f'earning/{s}_{typ}.csv')
