@@ -30,15 +30,19 @@ class Trader(object):
 
     def analysis_document(self, workers_num, stock_queues):
         while not stock_queues.empty():
-            stock_name = stock_queues.get()
-            if not self.analysis_statement(stock_name):
-                continue
-            self.obj.parser_earning(stock_name)
+            stock = stock_queues.get()
+
+            d,typ = self.obj.parser_earning(stock)
+
+            p = f'earning/{stock}_{typ}.csv'
+            self.out_csv(d, p)
 
     def analysis_document_single(self, stock):
-        return self.obj.parser_earning(stock)
-        
-        
+        d,typ = self.obj.parser_earning(stock)
+
+    def out_csv(self, d, p):
+        df = pd.DataFrame(d, columns= list(d.keys()))
+        df.to_csv(p)
 
 class Boss(object):
     def __init__(self, stock_name_list):
@@ -48,20 +52,11 @@ class Boss(object):
             self.stock_queues.put(stock_name)
         self.workers = []
 
-    def hire_worker(self):
-        """
-        using multiprocess to process .csv, we will enable self.num_worker thread to process data
-        """
-        for i in range(self.num_worker):
-            trader = copy.deepcopy(Trader())
-            print ('worker {}'.format(i))
-            self.workers.append(trader)
-
     def assign_task(self):
         for i in range(self.num_worker):
-            p = Process(target=self.workers[i].analysis_document, args=(i, self.stock_queues,))
+            p = Process(target=Trader().analysis_document, args=(i, self.stock_queues,))
             p.start()
-            p.join(timeout=0.1)
+            p.join(timeout=0.5)
         #self.workers[0].analysis_document(0, self.stock_queues)
 
         print ('assign task finish!')
@@ -102,20 +97,19 @@ def get_args():
 
 
 param = get_args()
-
-#multi-process
-#boss = Boss(get_stock_name_list())
-#boss.hire_worker()
-#boss.assign_task()
-
-#single-process
-
 if not os.path.exists('earning'):
     os.makedirs('earning')
 
+# multi-process
+boss = Boss(get_stock_name_list())
+boss.assign_task()
+
+# single-process
+'''
 t = Trader()
 for s in get_stock_name_list():
     print (s)
-    d,typ = t.analysis_document_single(s)
-    df = pd.DataFrame(d, columns= list(d.keys()))
-    df.to_csv(f'earning/{s}_{typ}.csv')
+    p = f'earning/{s}_{typ}.csv'
+    d, typ = t.analysis_document_single(s):
+    t.out_csv(d, p)
+    '''
