@@ -56,7 +56,7 @@ class Boss(object):
         for i in range(self.num_worker):
             p = Process(target=Trader().analysis_document, args=(i, self.stock_queues,))
             p.start()
-            p.join(timeout=0.5)
+            p.join(timeout=0.1)
         #self.workers[0].analysis_document(0, self.stock_queues)
 
         print ('assign task finish!')
