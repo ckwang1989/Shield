@@ -46,7 +46,7 @@ class Trader(object):
 
 class Boss(object):
     def __init__(self, stock_name_list):
-        self.num_worker = 1
+        self.num_worker = 1 # still work in num_worker=1
         self.stock_queues = queues.Queue(len(stock_name_list), ctx=multiprocessing)
         for stock_name in stock_name_list:
             self.stock_queues.put(stock_name)
