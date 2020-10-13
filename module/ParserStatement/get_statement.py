@@ -24,6 +24,8 @@ import copy
 
 from selenium.webdriver.support.ui import Select
 
+import pickle
+
 class Parser(object):
     # all_dict:
     # { '20112': {'eps': 0.7, 'free_cash': 0.8, .....}  \
@@ -172,7 +174,31 @@ class Parser(object):
 #        time.sleep(2)
         soup = (BeautifulSoup(self.driver.page_source,"lxml"))
         return soup
-    
+
+    def parser_finviz_screener(self):
+        count = 1
+        items_name = ['No.', 'Ticker', 'Company', 'Sector', 'Industry', 'Country', 'Market Cap', 'P/E', 'Price', 'Change', 'Volume']
+        results = []
+        companies = []
+
+        while len(companies)==20 or not len(companies):
+            url = f'https://finviz.com/screener.ashx?v=111&f=sh_opt_option&r={count}'
+            soup = self.get_soup_4(url)
+            soup_str = str(soup)
+            companies = soup.select('tr.table-dark-row-cp') + soup.select('tr.table-light-row-cp')
+            
+#            print (count, len(companies))
+
+            for company in companies:
+                company_empty = {f'{v}': '-' for v in items_name}
+                for i, item in enumerate(company.select('td')):
+#                    print (i, item.text)
+                    company_empty[items_name[i]] = item.text
+                results.append(company_empty)
+            
+            count = count + len(companies)
+
+        return results
 
     def parser_earning(self, symbol):
         url = f'https://www.streetinsider.com/dr/eps-ticker.php?q={symbol}#'
