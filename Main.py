@@ -31,9 +31,7 @@ class Trader(object):
     def analysis_document(self, workers_num, stock_queues):
         while not stock_queues.empty():
             stock = stock_queues.get()
-
             d,typ = self.obj.parser_earning(stock)
-
             p = f'earning/{stock}_{typ}.csv'
             self.out_csv(d, p)
 
@@ -64,12 +62,12 @@ class Boss(object):
 
 
 
-def get_stock_name_list():
-    from finviz.screener import Screener
+def get_stock_name_list(param):
+#    from finviz.screener import Screener
 
-    filters = ['geo_usa', 'sh_avgvol_o1000', 'sh_opt_option']  # Shows companies in NASDAQ which are in the S&P500
+#    filters = ['geo_usa', 'sh_avgvol_o1000', 'sh_opt_option']  # Shows companies in NASDAQ which are in the S&P500
     # Get the first 50 results sorted by price ascending
-    stock_list = Screener(filters=filters)
+#    stock_list = Screener(filters=filters)
 
 #    # Export the screener results to .csv
 #    stock_list.to_csv()
@@ -78,8 +76,10 @@ def get_stock_name_list():
 #    stock_list.to_sqlite()
 
     stock_name_list = []
-    for stock_dict in stock_list.data:
-        stock_name_list.append(stock_dict['Ticker'])
+    with open(param.stock_num_txt_p, 'r') as f_r:
+        for line in f_r.readlines():
+                line = line.strip()
+                stock_name_list.append(line)
     print (stock_name_list)
     return stock_name_list
 
@@ -93,6 +93,8 @@ def get_args():
         default= '---')
     parser.add_argument('--password', type=str, required=True, \
         default= '---')
+    parser.add_argument('--stock_num_txt_p', type=str, required=True, \
+        default= '---')
     return parser.parse_args()
 
 
@@ -101,7 +103,7 @@ if not os.path.exists('earning'):
     os.makedirs('earning')
 
 # multi-process
-boss = Boss(get_stock_name_list())
+boss = Boss(get_stock_name_list(param))
 boss.assign_task()
 
 # single-process
