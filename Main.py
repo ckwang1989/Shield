@@ -17,6 +17,7 @@ import finviz
 
 import pandas as pd
 import pickle
+import csv
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -38,6 +39,13 @@ def to_excel(outputs, excel_p='result.xlsx'):
 
     df = pd.DataFrame(outputs)
     df.to_excel(excel_p)
+
+def to_csv(outputs, csv_p='result.csv'):
+    with open(csv_p, "w") as csv_file:
+        writer = csv.writer(csv_file, delimiter =",",quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(list(outputs[0].keys()))
+        for o in outputs:
+            writer.writerow(list(o.values()))
 
 def dump_pickle(p, content):
     with open(p, 'wb') as handle:
@@ -61,5 +69,7 @@ trader = Trader(param)
 outputs = load_pickle('fizviz_screener.pkl')
 print (outputs)
 to_excel(outputs, excel_p='result.xlsx')
+to_csv(outputs, csv_p='result.csv')
+
 
 
