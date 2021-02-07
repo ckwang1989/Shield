@@ -23,6 +23,7 @@ import argparse
 import copy
 
 from selenium.webdriver.support.ui import Select
+import pyautogui
 
 class Parser(object):
     # all_dict:
@@ -40,6 +41,7 @@ class Parser(object):
         self.account = param.account
         self.password = param.password
         self.dict_all = {'quar': {}, 'mth': {}, 'week': {}}
+        self.pyautogui = pyautogui.screenshot()
         #self.quar_report_dict = {}
         #self.mth_report_dict = {}
         #self.week_report_dict = {}
@@ -166,6 +168,11 @@ class Parser(object):
         soup = (BeautifulSoup(self.driver.page_source,"lxml"))
         return soup
 
+    def get_soup_4(self, url):
+        self.driver.get(url)
+        wait = WebDriverWait(self.driver, 1)
+        time.sleep(1)
+
     def parser_eps(self, stock_num):
         self.stock_num = stock_num
         url = 'https://statementdog.com/analysis/tpe/{}/eps'.format(stock_num)
@@ -184,6 +191,36 @@ class Parser(object):
                 #self.quar_report_dict[date] = copy.deepcopy({'eps': value})
             else:
                 self.dict_all['quar'][date] = copy.deepcopy({'eps': '-99999999'})
+
+    def parser_price(self, stock_num):
+        url = 'http://jsjustweb.jihsun.com.tw/z/zc/zca/zca_{}.djhtm'.format(stock_num)
+        soup = self.get_soup_2(url)
+        table = soup.find_all("table", class_="t01")[0]
+        volumes = []
+        table_tr_row1 = table.find_all("tr")[1]
+        price = float(self.cancel_point(table_tr_row1.find_all("td")[1].text))
+        table_tr_row3 = table.find_all("tr")[3]
+        pe = float(self.cancel_point(table_tr_row3.find_all("td")[1].text))
+        volume = float(self.cancel_point(table_tr_row3.find_all("td")[7].text))
+        return price, pe, volume
+
+    def parser_investment_trust(self, stock_num, average_count=2):
+        url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{}.djhtm'.format(stock_num)
+        soup = self.get_soup_2(url)
+        table = soup.find_all("table", class_="t01")[0]
+        volumes = []
+        for i in range(average_count):
+            table_tr = table.find_all("tr")[7+i]
+            inv_trust_volume = int(table_tr.find_all("td")[2].text)
+            volumes.append(inv_trust_volume)
+        inv_trust_volume = sum(volumes)//len(volumes)
+        return inv_trust_volume
+    
+    def parser_K_screenshot(self, stock_num, p):
+        url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcw/zcw1_{}.djhtm'.format(stock_num)
+        soup = self.get_soup_4(url)
+        myScreenshot = pyautogui.screenshot()
+        myScreenshot.save(p)
 
 
     def parser_book_value(self, stock_num):
