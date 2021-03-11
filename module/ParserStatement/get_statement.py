@@ -217,10 +217,18 @@ class Parser(object):
         return inv_trust_volume
     
     def parser_K_screenshot(self, stock_num, p):
-        url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcw/zcw1_{}.djhtm'.format(stock_num)
-        soup = self.get_soup_4(url)
-        myScreenshot = pyautogui.screenshot()
-        myScreenshot.save(p)
+        #url = 
+        url = f'https://histock.tw/stock/tv/tvchart.aspx?no={stock_num}'
+
+        for state in ['D', 'W']:
+            if state == 'D':
+                url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcw/zcw1_{}.djhtm'.format(stock_num)
+            else:
+                url = f'http://jsjustweb.jihsun.com.tw/Z/ZC/ZCW/ZCW_{stock_num}_{state}.djhtm'
+
+            soup = self.get_soup_4(url)
+            myScreenshot = pyautogui.screenshot()
+            myScreenshot.save(p[:-4]+f'{state}.png')
 
 
     def parser_book_value(self, stock_num):
