@@ -25,6 +25,8 @@ import copy
 from selenium.webdriver.support.ui import Select
 import pyautogui
 
+from PIL import Image
+
 class Parser(object):
     # all_dict:
     # { '20112': {'eps': 0.7, 'free_cash': 0.8, .....}  \
@@ -216,19 +218,56 @@ class Parser(object):
         inv_trust_volume = sum(volumes)//len(volumes)
         return inv_trust_volume
     
-    def parser_K_screenshot(self, stock_num, p):
-        #url = 
-        url = f'https://histock.tw/stock/tv/tvchart.aspx?no={stock_num}'
+    def parser_K_directly(self):
+        # https://weikaiwei.com/finance/python-stock-crawler/
+        import requests
+        import pandas as pd
 
-        for state in ['D', 'W']:
+        dates = [20200201, 20200101, 20191201]
+        stockNo = 2330
+        url_template = "https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=html&date={}&stockNo={}"
+
+        for date in dates :
+            url = url_template.format(date, stockNo)
+            file_name = "{}_{}.csv".format(stockNo, date)
+            
+            data = pd.read_html(requests.get(url).text)[0]
+            data.columns = data.columns.droplevel(0)
+            data.to_csv(file_name, index=False)
+        input('w')
+
+    def parser_K_screenshot(self, stock_num, p):
+        def center_crop(im_ori, w, h):
+            x1_new, y1_new, x2_new, y2_new = int(w/2)-int(h/2), 0, int(w/2)+int(h/2), h
+            return im_ori.crop((x1_new, y1_new, x2_new, y2_new))
+            
+        w, h = self.pyautogui.size
+        h = int(h*0.85)
+        im_new = Image.new(mode = "RGB", size = (h*3, h*2))
+
+        for i_state, state in enumerate(['D', 'W', 'zcr', 'zch', 'news', 'main_force']):
             if state == 'D':
                 url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcw/zcw1_{}.djhtm'.format(stock_num)
-            else:
+            elif state == 'W':
                 url = f'http://jsjustweb.jihsun.com.tw/Z/ZC/ZCW/ZCW_{stock_num}_{state}.djhtm'
-
+            elif state == 'zcr':
+                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcr/zcr_{stock_num}.djhtm'
+            elif state == 'zch':
+                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zch/zch_{stock_num}.djhtm'
+            elif state == 'news':
+                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcv/zcv_{stock_num}_E_1.djhtm'
+            elif state == 'main_force':
+                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zco/zco_{stock_num}_2.djhtm'
+            
             soup = self.get_soup_4(url)
             myScreenshot = pyautogui.screenshot()
-            myScreenshot.save(p[:-4]+f'{state}.png')
+            myScreenshot_crop = center_crop(myScreenshot, w, h)
+            im_new.paste(myScreenshot_crop, (h*int(i_state%3), h*int(i_state/3)))
+#            myScreenshot.save(os.path.join(os.path.dirname(p), f'{state}.png')
+        im_new.save(p)
+
+
+        
 
 
     def parser_book_value(self, stock_num):
