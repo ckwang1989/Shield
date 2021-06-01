@@ -36,7 +36,7 @@ class Parser(object):
         self.driver = None
         self.stock_num = -1
         self.chrome_path = param.chrome_driver_path
-        self.xml_bs_pth = param.xml_bs_pth
+        self.sav_bs_pth = param.sav_bs_pth
         self.account = param.account
         self.password = param.password
         self.dict_all = {'quar': {}, 'mth': {}, 'week': {}}
@@ -126,19 +126,17 @@ class Parser(object):
         wait = WebDriverWait(self.driver, 1)
         wait.until(EC.presence_of_element_located((By.CLASS_NAME, \
             'sheet-interval-current-option-text')))
-        time.sleep(2)
-        temp = self.driver.find_element_by_xpath(\
-            '//*[@id="report_title"]/table/tbody/tr/td[1]/ul/li[4]')
-        self.driver.execute_script("arguments[0].click();", temp)
 
-        s1 = Select(self.driver.find_element_by_xpath(\
-            '//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[1]/select[1]'))
-        s1.select_by_value('2001')
-        
-        self.driver.find_element_by_xpath('//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[3]/div').click()
-        #self.driver.execute_script("arguments[0].click();", temp)
+#        temp = self.driver.find_element_by_xpath(\
+#            '//*[@id="report_title"]/table/tbody/tr/td[1]/ul/li[4]')
+#        self.driver.execute_script("arguments[0].click();", temp)
+#
+#        s1 = Select(self.driver.find_element_by_xpath(\
+#            '//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[1]/select[1]'))
+#        s1.select_by_value('2001')
+#        
+#        self.driver.find_element_by_xpath('//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[3]/div').click()
 
-        time.sleep(2)
         soup = (BeautifulSoup(self.driver.page_source,"lxml"))
         return soup
 #//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[1]/select[1]/option[1]
@@ -178,12 +176,12 @@ class Parser(object):
             .format(len(date_list), len(value_list))
         for count in range(len(date_list)):
             date = date_list[count].text
-            value = self.cancel_point(value_list[count].text)
+            value = self.cancel_point(value_list[count].text.strip())
             if self.is_value(date) and self.is_value(value):
-                self.dict_all['quar'][date] = copy.deepcopy({'eps': value})
+                self.dict_all['quar'][date] = copy.deepcopy({'eps': float(value)})
                 #self.quar_report_dict[date] = copy.deepcopy({'eps': value})
             else:
-                self.dict_all['quar'][date] = copy.deepcopy({'eps': '-99999999'})
+                self.dict_all['quar'][date] = copy.deepcopy({'eps': -99999999})
 
 
     def parser_book_value(self, stock_num):
@@ -197,9 +195,9 @@ class Parser(object):
             .format(len(date_list), len(value_list))
         for count in range(len(date_list)):
             date = date_list[count].text
-            value = self.cancel_point(value_list[count].text)
+            value = self.cancel_point(value_list[count].text.strip())
             if self.is_value(date) and self.is_value(value):
-                self.dict_all['quar'][date]['book_value'] = value
+                self.dict_all['quar'][date]['book_value'] = float(value)
                 #self.quar_report_dict[date]['book_value'] = value
             else:
                 self.dict_all['quar'][date]['book_value'] = '-99999999'
@@ -217,16 +215,16 @@ class Parser(object):
             .format(len(date_list), len(oper_cash_list), len(free_cash_list))
         for count in range(len(date_list)):
             date = date_list[count].text
-            oper_cash_value = self.cancel_point(oper_cash_list[count].text)
-            free_cash_value = self.cancel_point(free_cash_list[count].text)
+            oper_cash_value = self.cancel_point(oper_cash_list[count].text.strip())
+            free_cash_value = self.cancel_point(free_cash_list[count].text.strip())
             if self.is_value(date) and self.is_value(oper_cash_value) and self.is_value(free_cash_value):
                 #self.quar_report_dict[date]['free_cash'] = free_cash_value + '000' #因為自由現金流單位是千
                 #self.quar_report_dict[date]['oper_cash'] = oper_cash_value + '000'
-                self.dict_all['quar'][date]['free_cash'] = free_cash_value + '000' #因為自由現金流單位是千
-                self.dict_all['quar'][date]['oper_cash'] = oper_cash_value + '000'
+                self.dict_all['quar'][date]['free_cash'] = float(free_cash_value) * 1000 #因為自由現金流單位是千
+                self.dict_all['quar'][date]['oper_cash'] = float(oper_cash_value) * 1000
             else:
-                self.dict_all['quar'][date]['free_cash'] = '-99999999'
-                self.dict_all['quar'][date]['oper_cash'] = '-99999999'
+                self.dict_all['quar'][date]['free_cash'] = -99999999
+                self.dict_all['quar'][date]['oper_cash'] = -99999999
 
     def parser_profit_margin(self, stock_num):
         url = 'https://statementdog.com/analysis/tpe/{}/profit-margin'.format(stock_num)
@@ -245,21 +243,21 @@ class Parser(object):
                 len(after_tax_income_rate_list))
         for count in range(len(date_list)):
             date = date_list[count].text
-            gross_profit_rate_val = self.cancel_point(gross_profit_rate_list[count].text)
-            oper_income_rate_val = self.cancel_point(oper_income_rate_list[count].text)
-            after_tax_income_rate_val = self.cancel_point(after_tax_income_rate_list[count].text)
+            gross_profit_rate_val = self.cancel_point(gross_profit_rate_list[count].text.strip())
+            oper_income_rate_val = self.cancel_point(oper_income_rate_list[count].text.strip())
+            after_tax_income_rate_val = self.cancel_point(after_tax_income_rate_list[count].text.strip())
             if self.is_value(date) and self.is_value(gross_profit_rate_val) and \
                 self.is_value(oper_income_rate_val) and self.is_value(after_tax_income_rate_val):
-                self.dict_all['quar'][date]['after_tax_income_rate'] = gross_profit_rate_val
-                self.dict_all['quar'][date]['oper_income_rate'] = oper_income_rate_val
-                self.dict_all['quar'][date]['after_tax_income_rate'] = after_tax_income_rate_val
+                self.dict_all['quar'][date]['after_tax_income_rate'] = float(gross_profit_rate_val)
+                self.dict_all['quar'][date]['oper_income_rate'] = float(oper_income_rate_val)
+                self.dict_all['quar'][date]['after_tax_income_rate'] = float(after_tax_income_rate_val)
                 #self.quar_report_dict[date]['after_tax_income_rate'] = gross_profit_rate_val
                 #self.quar_report_dict[date]['oper_income_rate'] = oper_income_rate_val
                 #self.quar_report_dict[date]['after_tax_income_rate'] = after_tax_income_rate_val
             else:
-                self.dict_all['quar'][date]['after_tax_income_rate'] = '-99999999'
-                self.dict_all['quar'][date]['oper_income_rate'] = '-99999999'
-                self.dict_all['quar'][date]['after_tax_income_rate'] = '-99999999'
+                self.dict_all['quar'][date]['after_tax_income_rate'] = -99999999
+                self.dict_all['quar'][date]['oper_income_rate'] = -99999999
+                self.dict_all['quar'][date]['after_tax_income_rate'] = -99999999
 
     def parser_non_oper_income(self, stock_num): #業外收支佔稅前淨利比
         url = 'https://statementdog.com/analysis/tpe/{}/non-operating-income-to-profit-before-tax'.format(stock_num)
@@ -272,12 +270,12 @@ class Parser(object):
             .format(len(date_list), len(value_list))
         for count in range(len(date_list)):
             date = date_list[count].text
-            value = self.cancel_point(value_list[count].text)
+            value = self.cancel_point(value_list[count].text.strip())
             if self.is_value(date) and self.is_value(value):
-                self.dict_all['quar'][date]['non_oper_income'] = value
+                self.dict_all['quar'][date]['non_oper_income'] = float(value)
                 #self.quar_report_dict[date]['non_oper_income'] = value
             else:
-                self.dict_all['quar'][date]['non_oper_income'] = '-99999999'
+                self.dict_all['quar'][date]['non_oper_income'] = -99999999
 
     def parser_roe(self, stock_num):
         url = 'https://statementdog.com/analysis/tpe/{}/roe-roa'.format(stock_num)
@@ -290,12 +288,12 @@ class Parser(object):
             .format(len(date_list), len(value_list))
         for count in range(len(date_list)):
             date = date_list[count].text
-            value = self.cancel_point(value_list[count].text)
+            value = self.cancel_point(value_list[count].text.strip())
             if self.is_value(date) and self.is_value(value):
-                self.dict_all['quar'][date]['roe'] = value
+                self.dict_all['quar'][date]['roe'] = float(value)
                 #self.quar_report_dict[date]['roe'] = value
             else:
-                self.dict_all['quar'][date]['roe'] = '-99999999'
+                self.dict_all['quar'][date]['roe'] = -99999999
 
     def parser_oper_cash_flow_income_rate(self, stock_num):
         url = 'https://statementdog.com/analysis/tpe/{}/operating-cash-flow-to-net-income-ratio'.format(stock_num)
@@ -308,12 +306,12 @@ class Parser(object):
             .format(len(date_list), len(value_list))
         for count in range(len(date_list)):
             date = date_list[count].text
-            value = self.cancel_point(value_list[count].text)
+            value = self.cancel_point(value_list[count].text.strip())
             if self.is_value(date) and self.is_value(value):
-                self.dict_all['quar'][date]['oper_cash_flow_income_rate'] = value
+                self.dict_all['quar'][date]['oper_cash_flow_income_rate'] = float(value)
                 #self.quar_report_dict[date]['oper_cash_flow_income_rate'] = value
             else:
-                self.dict_all['quar'][date]['oper_cash_flow_income_rate'] = '-99999999'
+                self.dict_all['quar'][date]['oper_cash_flow_income_rate'] = -99999999
 
     def parser_turnover_days(self, stock_num): #營運週轉天數
         url = 'https://statementdog.com/analysis/tpe/{}/turnover-days'.format(stock_num)
@@ -332,39 +330,64 @@ class Parser(object):
                 len(oper_turnover_list))
         for count in range(len(date_list)):
             date = date_list[count].text
-            receivable_val = self.cancel_point(receivable_list[count].text)
-            in_stock_val = self.cancel_point(in_stock_list[count].text)
-            oper_turnover_val = self.cancel_point(oper_turnover_list[count].text)
+            receivable_val = self.cancel_point(receivable_list[count].text.strip())
+            in_stock_val = self.cancel_point(in_stock_list[count].text.strip())
+            oper_turnover_val = self.cancel_point(oper_turnover_list[count].text.strip())
             if self.is_value(date) and self.is_value(receivable_val) and \
                 self.is_value(in_stock_val) and self.is_value(oper_turnover_val):
-                self.dict_all['quar'][date]['receivable_days'] = receivable_val
-                self.dict_all['quar'][date]['in_stock_days'] = in_stock_val
-                self.dict_all['quar'][date]['oper_turnover_days'] = oper_turnover_val
+                self.dict_all['quar'][date]['receivable_days'] = float(receivable_val)
+                self.dict_all['quar'][date]['in_stock_days'] = float(in_stock_val)
+                self.dict_all['quar'][date]['oper_turnover_days'] = float(oper_turnover_val)
                 #self.quar_report_dict[date]['receivable_days'] = receivable_val
                 #self.quar_report_dict[date]['in_stock_days'] = in_stock_val
                 #self.quar_report_dict[date]['oper_turnover_days'] = oper_turnover_val
             else:
-                self.dict_all['quar'][date]['receivable_days'] = '-99999999'
-                self.dict_all['quar'][date]['in_stock_days'] = '-99999999'
-                self.dict_all['quar'][date]['oper_turnover_days'] = '-99999999'
+                self.dict_all['quar'][date]['receivable_days'] = -99999999
+                self.dict_all['quar'][date]['in_stock_days'] = -99999999
+                self.dict_all['quar'][date]['oper_turnover_days'] = -99999999
 
     def parser_mth_revenue_growth_rate(self, stock_num):
-        url = 'https://statementdog.com/analysis/tpe/{}/monthly-revenue-growth-rate'.format(stock_num)
-        soup = self.get_soup(url)
-        dataTable = soup.select('#dataTable')[0]
-        date_list = dataTable.select('tr')[0].select('th')
-        value_list = dataTable.select('tr')[1].select('td')
-        assert len(date_list) == len(value_list), \
-            'len of date_list{} and value_list{} is not equal in monthly revenue growth rate' \
-            .format(len(date_list), len(value_list))
-        for count in range(len(date_list)):
-            date = date_list[count].text
-            value = self.cancel_point(value_list[count].text)
-            if self.is_value(date) and self.is_value(value):
-                self.dict_all['mth'][date]['mth_revenue_growth_rate'] = value
-                #self.mth_report_dict[date]['mth_revenue_growth_rate'] = value
-            else:
-                self.dict_all['mth'][date]['mth_revenue_growth_rate'] = '-99999999'
+        url = f'http://jsjustweb.jihsun.com.tw/z/zc/zch/zch_{stock_num}.djhtm'
+        soup = self.get_soup_2(url)
+        table = soup.select('table')
+        print(table[0])
+        print(table[1])
+        print(table[2])
+        print(table[3])
+        trs = soup.select('tr')[2]
+        print(trs)
+        input('wfw')
+        for row in trs:
+            print(row)
+            input('fwfwwffwwf')
+            item_in_row = row.select('td')
+#            for item in item_in_row:
+#                print(item.text)
+#                input('fwfwwffwwf')
+        
+#        date = tds[]
+            
+#        self.dict_all['mth'][date]
+
+        print(soup)
+
+#    def parser_mth_revenue_growth_rate(self, stock_num):
+#        url = 'https://statementdog.com/analysis/tpe/{}/monthly-revenue-growth-rate'.format(stock_num)
+#        soup = self.get_soup(url)
+#        dataTable = soup.select('#dataTable')[0]
+#        date_list = dataTable.select('tr')[0].select('th')
+#        value_list = dataTable.select('tr')[1].select('td')
+#        assert len(date_list) == len(value_list), \
+#            'len of date_list{} and value_list{} is not equal in monthly revenue growth rate' \
+#            .format(len(date_list), len(value_list))
+#        for count in range(len(date_list)):
+#            date = date_list[count].text
+#            value = self.cancel_point(value_list[count].text.strip())
+#            if self.is_value(date) and self.is_value(value):
+#                self.dict_all['mth'][date]['mth_revenue_growth_rate'] = float(value)
+#                #self.mth_report_dict[date]['mth_revenue_growth_rate'] = value
+#            else:
+#                self.dict_all['mth'][date]['mth_revenue_growth_rate'] = -99999999
 
     def parser_average_dividend_yield(self, stock_num):
         url = 'https://statementdog.com/analysis/tpe/{}/average-dividend-yield'.format(stock_num)
@@ -377,9 +400,9 @@ class Parser(object):
             .format(len(date_list), len(value_list))
         for count in range(len(date_list)):
             date = date_list[count].text
-            value = self.cancel_point(value_list[count].text)
+            value = self.cancel_point(value_list[count].text.strip())
             if self.is_value(date) and self.is_value(value):
-                self.dict_all['mth'][date]['average_dividend_yield'] = value
+                self.dict_all['mth'][date]['average_dividend_yield'] = float(value)
                 #self.mth_report_dict[date]['average_dividend_yield'] = value
             else:
                 self.dict_all['mth'][date]['average_dividend_yield'] = '-99999999'
@@ -395,12 +418,12 @@ class Parser(object):
             .format(len(date_list), len(value_list))
         for count in range(len(date_list)):
             date = date_list[count].text
-            value = self.cancel_point(value_list[count].text)
+            value = self.cancel_point(value_list[count].text.strip())
             if self.is_value(date) and self.is_value(value):
-                self.dict_all['mth'][date] = copy.deepcopy({'price_earnings_ratio': value})
+                self.dict_all['mth'][date] = copy.deepcopy({'price_earnings_ratio': float(value)})
                 #self.mth_report_dict[date] = copy.deepcopy({'price_earnings_ratio': value})
             else:
-                self.dict_all['mth'][date] = copy.deepcopy({'price_earnings_ratio': '-99999999'})
+                self.dict_all['mth'][date] = copy.deepcopy({'price_earnings_ratio': -99999999})
                 
 
     def parser_stock_holders(self, stock_num):
@@ -412,8 +435,8 @@ class Parser(object):
             if len(temp_list) < 5 or not self.is_value(self.cancel_point(temp_list[2].text, '-')):
                 continue
             date = temp_list[2].text.strip()
-            avg_amount = self.cancel_point(temp_list[5].text) # 平均張數/人
-            more_than_400 = temp_list[7].text # >400張大股東持有百分比
+            avg_amount = float(self.cancel_point(temp_list[5].text.strip())) # 平均張數/人
+            more_than_400 = float(temp_list[7].text.strip()) # >400張大股東持有百分比
             self.dict_all['week'][self.cancel_point(date, '-')] = \
                 copy.deepcopy({'avg_amount': avg_amount})
             self.dict_all['week'][self.cancel_point(date, '-')]['more_than_400'] = \
@@ -423,12 +446,26 @@ class Parser(object):
             #self.week_report_dict[self.cancel_point(date, '-')]['more_than_400'] = \
             #    more_than_400
 
+    def parser_investment_trust(self, stock_num, average_count=2):
+        url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{}.djhtm'.format(stock_num)
+        soup = self.get_soup_2(url)
+        table = soup.find_all("table", class_="t01")[0]
+        volumes = []
+        print(table)
+        for i in range(average_count):
+            table_tr = table.find_all("tr")[7+i]
+            inv_trust_volume = int(table_tr.find_all("td")[2].text)
+            volumes.append(inv_trust_volume)
+        inv_trust_volume = sum(volumes)//len(volumes)
+        input('wfwfwfwfw')
+        return inv_trust_volume
+
     def clear(self):
         self.dict_all = {'quar': {}, 'mth': {}, 'week': {}}
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--xml_bs_pth', type=str, required=False, \
+    parser.add_argument('--sav_bs_pth', type=str, required=False, \
         default= '/Users/Wiz/Desktop/Shield/data')
     parser.add_argument('--chrome_driver_path', type=str, required=False, \
         default= '/Users/Wiz/.wdm/chromedriver/2.46/mac64/chromedriver')
