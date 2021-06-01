@@ -24,6 +24,8 @@ import copy
 
 from selenium.webdriver.support.ui import Select
 
+import pickle
+
 class Parser(object):
     # all_dict:
     # { '20112': {'eps': 0.7, 'free_cash': 0.8, .....}  \
@@ -166,6 +168,7 @@ class Parser(object):
 
     def parser_eps(self, stock_num):
         self.stock_num = stock_num
+        update_to_date = True
         url = 'https://statementdog.com/analysis/tpe/{}/eps'.format(stock_num)
         soup = self.get_soup(url)
         dataTable = soup.select('#dataTable')[0]
@@ -177,11 +180,14 @@ class Parser(object):
         for count in range(len(date_list)):
             date = date_list[count].text
             value = self.cancel_point(value_list[count].text.strip())
-            if self.is_value(date) and self.is_value(value):
-                self.dict_all['quar'][date] = copy.deepcopy({'eps': float(value)})
-                #self.quar_report_dict[date] = copy.deepcopy({'eps': value})
-            else:
-                self.dict_all['quar'][date] = copy.deepcopy({'eps': -99999999})
+            if date not in self.dict_all['quar'].keys():
+                update_to_date = False
+                if self.is_value(date) and self.is_value(value):
+                    self.dict_all['quar'][date] = copy.deepcopy({'eps': float(value)})
+                    #self.quar_report_dict[date] = copy.deepcopy({'eps': value})
+                else:
+                    self.dict_all['quar'][date] = copy.deepcopy({'eps': -99999999})
+        return update_to_date
 
 
     def parser_book_value(self, stock_num):
@@ -350,12 +356,9 @@ class Parser(object):
         url = f'http://jsjustweb.jihsun.com.tw/z/zc/zch/zch_{stock_num}.djhtm'
         soup = self.get_soup_2(url)
         table = soup.select('table')
-        print(table[0])
-        print(table[1])
+#        print(table[0])
+#        print(table[1])
         print(table[2])
-        print(table[3])
-        trs = soup.select('tr')[2]
-        print(trs)
         input('wfw')
         for row in trs:
             print(row)
@@ -462,6 +465,10 @@ class Parser(object):
 
     def clear(self):
         self.dict_all = {'quar': {}, 'mth': {}, 'week': {}}
+
+    def save(self, p):
+        with open(p, 'wb') as handle:
+            pickle.dump(self.dict_all, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 def get_args():
     parser = argparse.ArgumentParser()
