@@ -47,32 +47,31 @@ def main():
     haven_pkls = set([p[:-4] for p in os.listdir(param.sav_bs_pth)])
 
     for stock_num in sorted(list(set(stock_num_list)-haven_pkls)):
-        time.sleep(1.5)
-        update_to_date = obj.parser_eps(stock_num)
-        time.sleep(1.5)
-        if not update_to_date:
-            obj.parser_book_value(stock_num)
-            time.sleep(1.5)
-            obj.parser_cash_flow(stock_num)
-            time.sleep(1.5)
-            obj.parser_profit_margin(stock_num)
-            time.sleep(1.5)
-            obj.parser_non_oper_income(stock_num)
-            time.sleep(1.5)
-            obj.parser_roe(stock_num)
-            time.sleep(1.5)
-            obj.parser_oper_cash_flow_income_rate(stock_num)
-            time.sleep(1.5)
-            obj.parser_turnover_days(stock_num)
-            time.sleep(1.5)
-            obj.parser_price_earnings_ratio(stock_num)
-            time.sleep(1.5)
-            obj.parser_average_dividend_yield(stock_num)
-            time.sleep(1.5)
-            obj.parser_stock_holders(stock_num)
-        obj.save(os.path.join(param.sav_bs_pth, stock_num+'.pkl'))
-        obj.clear()
-        count += 1
+        print(stock_num)
+        p = f'C:\\Users\\user\\Downloads\\0601\\Shield\\data2\\{stock_num}.pkl'
+        if stock_num[:2] not in ['28', '58', '60'] and stock_num != '8411': #continue
+#        try:
+            obj.load_pickle(p)
+            obj.parser_mth_revenue_growth_rate(stock_num)
+            obj.save(os.path.join(param.sav_bs_pth, stock_num+'.pkl'))
+            continue
+            update_to_date = obj.parser_eps(stock_num)
+            if not update_to_date:
+                obj.parser_book_value(stock_num)
+                obj.parser_cash_flow(stock_num)
+                obj.parser_profit_margin(stock_num)
+                obj.parser_non_oper_income(stock_num)
+                obj.parser_roe(stock_num)
+                obj.parser_oper_cash_flow_income_rate(stock_num)
+                obj.parser_turnover_days(stock_num)
+                obj.parser_price_earnings_ratio(stock_num)
+                obj.parser_average_dividend_yield(stock_num)
+                obj.parser_stock_holders(stock_num)
+                obj.save(os.path.join(param.sav_bs_pth, stock_num+'.pkl'))
+                obj.clear()
+                count += 1
+#        except:
+#            print(f'fail in {stock_num}')
 
 #def main():
 #	param = get_args()

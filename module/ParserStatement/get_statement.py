@@ -125,10 +125,10 @@ class Parser(object):
                 soup
         '''
         self.driver.get(url)
-        wait = WebDriverWait(self.driver, 1)
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, \
-            'sheet-interval-current-option-text')))
-
+#        wait = WebDriverWait(self.driver, 1)
+#        wait.until(EC.presence_of_element_located((By.CLASS_NAME, \
+#            'sheet-interval-current-option-text')))
+        time.sleep(2.5)
 #        temp = self.driver.find_element_by_xpath(\
 #            '//*[@id="report_title"]/table/tbody/tr/td[1]/ul/li[4]')
 #        self.driver.execute_script("arguments[0].click();", temp)
@@ -144,6 +144,7 @@ class Parser(object):
 #//*[@id="report_title"]/table/tbody/tr/td[1]/div[2]/div[1]/select[1]/option[1]
     def get_soup_2(self, url):
         response = requests.get(url)
+        print(response)
         soup = BeautifulSoup(response.text,'lxml')
         return soup
 
@@ -355,24 +356,18 @@ class Parser(object):
     def parser_mth_revenue_growth_rate(self, stock_num):
         url = f'http://jsjustweb.jihsun.com.tw/z/zc/zch/zch_{stock_num}.djhtm'
         soup = self.get_soup_2(url)
-        table = soup.select('table')
-#        print(table[0])
-#        print(table[1])
-        print(table[2])
-        input('wfw')
-        for row in trs:
-            print(row)
-            input('fwfwwffwwf')
-            item_in_row = row.select('td')
-#            for item in item_in_row:
-#                print(item.text)
-#                input('fwfwwffwwf')
-        
-#        date = tds[]
-            
-#        self.dict_all['mth'][date]
+        table = soup.select('table')[2]
+        for tr in table.select('tr'):
+            # if in the table, you can get 7 colum, and I don't need first row(item row),
+            # so add len(tr.select('td')[0].text) > 4 to remove 年/月
+            if len(tr.select('td')) == 7 and len(tr.select('td')[0].text) > 4:
+                value = tr.select('td')[-3].text[:-1]
+                if len(value) == 0: break
+                value = float(self.cancel_point(value))
+                date = tr.select('td')[0].text.split('/')
+                date = f'{1911 + int(date[0])}%02d' % int(date[1]) 
+                self.dict_all['mth'][date]['mth_revenue_growth_rate'] = value
 
-        print(soup)
 
 #    def parser_mth_revenue_growth_rate(self, stock_num):
 #        url = 'https://statementdog.com/analysis/tpe/{}/monthly-revenue-growth-rate'.format(stock_num)
@@ -469,6 +464,10 @@ class Parser(object):
     def save(self, p):
         with open(p, 'wb') as handle:
             pickle.dump(self.dict_all, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    def load_pickle(self, pkl_p):
+        with open(pkl_p, 'rb') as f:
+            self.dict_all = pickle.load(f)
 
 def get_args():
     parser = argparse.ArgumentParser()
