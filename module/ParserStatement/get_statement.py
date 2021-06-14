@@ -199,24 +199,49 @@ class Parser(object):
         soup = self.get_soup_2(url)
         table = soup.find_all("table", class_="t01")[0]
         volumes = []
+
         table_tr_row1 = table.find_all("tr")[1]
-        price = float(self.cancel_point(table_tr_row1.find_all("td")[1].text))
+        tmp = self.cancel_point(table_tr_row1.find_all("td")[1].text)
+        price = float(tmp) if self.is_value(tmp) else -1
+
         table_tr_row3 = table.find_all("tr")[3]
-        pe = float(self.cancel_point(table_tr_row3.find_all("td")[1].text))
-        volume = float(self.cancel_point(table_tr_row3.find_all("td")[7].text))
+        tmp = self.cancel_point(table_tr_row3.find_all("td")[1].text)
+        pe = float(tmp) if self.is_value(tmp) else -1
+
+        tmp = self.cancel_point(table_tr_row3.find_all("td")[7].text)
+        volume = float(tmp) if self.is_value(tmp) else -1
         return price, pe, volume
 
-    def parser_investment_trust(self, stock_num, average_count=2):
+    def parser_investment_trust(self, stock_num, average_count=1):
+        # 日期	外資	投信	自營商	單日合計	外資	投信	自營商	單日合計	外資	三大法人
         url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{}.djhtm'.format(stock_num)
         soup = self.get_soup_2(url)
         table = soup.find_all("table", class_="t01")[0]
-        volumes = []
+        results = []
         for i in range(average_count):
             table_tr = table.find_all("tr")[7+i]
-            inv_trust_volume = int(table_tr.find_all("td")[2].text)
-            volumes.append(inv_trust_volume)
-        inv_trust_volume = sum(volumes)//len(volumes)
-        return inv_trust_volume
+            
+            date = table_tr.find_all("td")[0].text
+            foreign_inv_volume = int(self.cancel_point(table_tr.find_all("td")[1].text))
+            inv_trust_volume = int(self.cancel_point(table_tr.find_all("td")[2].text))
+            foreign_inv_volume_total = int(self.cancel_point(table_tr.find_all("td")[5].text))
+            inv_trust_volume_total = int(self.cancel_point(table_tr.find_all("td")[6].text))
+            
+            institutional_invest_volume_total = int(self.cancel_point(table_tr.find_all("td")[8].text))
+            institutional_invest_volume_percent = float(table_tr.find_all("td")[10].text[:-1])
+            
+            all_volume = institutional_invest_volume_total / institutional_invest_volume_percent
+            inv_trust_volume_percent = inv_trust_volume_total / all_volume
+            results.append(copy.deepcopy({'date': date, \
+                                            'foreign_inv_volume': foreign_inv_volume, \
+                                            'inv_trust_volume': inv_trust_volume, \
+                                            'foreign_inv_volume_total': foreign_inv_volume_total, \
+                                            'institutional_invest_volume_total': institutional_invest_volume_total, \
+                                            'inv_trust_volume_total': inv_trust_volume_total, \
+                                            'institutional_invest_volume_percent': institutional_invest_volume_percent, \
+                                            'all_volume': all_volume, \
+                                            'inv_trust_volume_percent': inv_trust_volume_percent}))
+        return results
     
     def parser_K_directly(self):
         # https://weikaiwei.com/finance/python-stock-crawler/

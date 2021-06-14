@@ -44,8 +44,12 @@ def main():
     with open('stock_num.txt', 'r', encoding="utf-8") as f_r:
         for line in f_r.readlines():
             stock_num_list.append(line.strip()[0:4])
+    
     for stock_num in stock_num_list:
-        obj.parser_K_screenshot(stock_num, f'{result_p}/{stock_num}.png')
+        price, pe, volume = obj.parser_price(stock_num)
+        result_shareholder = obj.parser_investment_trust(stock_num)
+        result_shareholder['inv_trust_volume'] * price
+#        obj.parser_K_screenshot(stock_num, f'{result_p}/{stock_num}.png')
 
 
 if __name__ == '__main__':
