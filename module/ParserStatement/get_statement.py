@@ -275,7 +275,7 @@ class Parser(object):
         h = int(h*0.85)
         im_new = Image.new(mode = "RGB", size = (h*3, h*2))
 
-        for i_state, state in enumerate(['D', 'W', 'zcr', 'zch', 'news', 'main_force']):
+        for i_state, state in enumerate(['D', 'W', 'zcr', 'zch', 'news', 'institutional_invest']):
             if state == 'D':
                 url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcw/zcw1_{}.djhtm'.format(stock_num)
             elif state == 'W':
@@ -288,7 +288,9 @@ class Parser(object):
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcv/zcv_{stock_num}_E_1.djhtm'
             elif state == 'main_force':
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zco/zco_{stock_num}_2.djhtm'
-            
+            elif state == 'institutional_invest':
+                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{stock_num}.djhtm'
+                        
             soup = self.get_soup_4(url)
             myScreenshot = pyautogui.screenshot()
             myScreenshot_crop = center_crop(myScreenshot, w, h)
