@@ -197,7 +197,11 @@ class Parser(object):
     def parser_price(self, stock_num):
         url = 'http://jsjustweb.jihsun.com.tw/z/zc/zca/zca_{}.djhtm'.format(stock_num)
         soup = self.get_soup_2(url)
-        table = soup.find_all("table", class_="t01")[0]
+        table = soup.find_all("table", class_="t01")
+        if len(table) == 0: 
+            return 0, 0, 0
+        else:
+            table = table[0]
         volumes = []
 
         table_tr_row1 = table.find_all("tr")[1]
@@ -212,36 +216,37 @@ class Parser(object):
         volume = float(tmp) if self.is_value(tmp) else -1
         return price, pe, volume
 
-    def parser_investment_trust(self, stock_num, average_count=1):
+    def parser_investment_trust(self, stock_num, i=0):
         # 日期	外資	投信	自營商	單日合計	外資	投信	自營商	單日合計	外資	三大法人
         url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{}.djhtm'.format(stock_num)
         soup = self.get_soup_2(url)
         table = soup.find_all("table", class_="t01")[0]
-        results = []
-        for i in range(average_count):
-            table_tr = table.find_all("tr")[7+i]
-            
-            date = table_tr.find_all("td")[0].text
-            foreign_inv_volume = int(self.cancel_point(table_tr.find_all("td")[1].text))
-            inv_trust_volume = int(self.cancel_point(table_tr.find_all("td")[2].text))
-            foreign_inv_volume_total = int(self.cancel_point(table_tr.find_all("td")[5].text))
-            inv_trust_volume_total = int(self.cancel_point(table_tr.find_all("td")[6].text))
-            
-            institutional_invest_volume_total = int(self.cancel_point(table_tr.find_all("td")[8].text))
-            institutional_invest_volume_percent = float(table_tr.find_all("td")[10].text[:-1])
-            
-            all_volume = institutional_invest_volume_total / institutional_invest_volume_percent
-            inv_trust_volume_percent = inv_trust_volume_total / all_volume
-            results.append(copy.deepcopy({'date': date, \
-                                            'foreign_inv_volume': foreign_inv_volume, \
-                                            'inv_trust_volume': inv_trust_volume, \
-                                            'foreign_inv_volume_total': foreign_inv_volume_total, \
-                                            'institutional_invest_volume_total': institutional_invest_volume_total, \
-                                            'inv_trust_volume_total': inv_trust_volume_total, \
-                                            'institutional_invest_volume_percent': institutional_invest_volume_percent, \
-                                            'all_volume': all_volume, \
-                                            'inv_trust_volume_percent': inv_trust_volume_percent}))
-        return results
+#        if len(table.find_all("tr")) <= 7+i:
+#            return {}
+        table_tr = table.find_all("tr")[7+i]
+        
+        date = table_tr.find_all("td")[0].text
+        if not self.is_value(self.cancel_point(table_tr.find_all("td")[1].text)):
+            return {}
+        foreign_inv_volume = int(self.cancel_point(table_tr.find_all("td")[1].text))
+        inv_trust_volume = int(self.cancel_point(table_tr.find_all("td")[2].text))
+        foreign_inv_volume_total = int(self.cancel_point(table_tr.find_all("td")[5].text))
+        inv_trust_volume_total = int(self.cancel_point(table_tr.find_all("td")[6].text))
+        
+        institutional_invest_volume_total = int(self.cancel_point(table_tr.find_all("td")[8].text))
+        institutional_invest_volume_percent = float(table_tr.find_all("td")[10].text[:-1])
+        
+        all_volume = 0 if institutional_invest_volume_percent == 0 else institutional_invest_volume_total / institutional_invest_volume_percent
+        inv_trust_volume_percent = 0 if all_volume == 0 else inv_trust_volume_total / all_volume
+        return {'date': date, \
+            'foreign_inv_volume': foreign_inv_volume, \
+            'inv_trust_volume': inv_trust_volume, \
+            'foreign_inv_volume_total': foreign_inv_volume_total, \
+            'institutional_invest_volume_total': institutional_invest_volume_total, \
+            'inv_trust_volume_total': inv_trust_volume_total, \
+            'institutional_invest_volume_percent': institutional_invest_volume_percent, \
+            'all_volume': all_volume, \
+            'inv_trust_volume_percent': inv_trust_volume_percent}
     
     def parser_K_directly(self):
         # https://weikaiwei.com/finance/python-stock-crawler/
