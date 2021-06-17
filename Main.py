@@ -57,7 +57,7 @@ def main():
         if i_stock_num and i_stock_num % 100 == 0:
             print('i_stock_num: ', i_stock_num, ' result_topN: ', result_topN)
 #        try:  
-        if True: 
+        if False: 
             price, pe, volume = obj.parser_price(stock_num)
             if price == 0 and pe == 0 and volume == 0: continue
             result_shareholder = obj.parser_investment_trust(stock_num, 0)
@@ -95,7 +95,7 @@ def main():
 #        except:
 #            print(i_stock_num, stock_num, 'fail')
 
-    symbols = []
+    symbols = [2002]
     for typ in result_topN.keys():
         for k in result_topN[typ].keys():
             symbols.extend(result_topN[typ][k])

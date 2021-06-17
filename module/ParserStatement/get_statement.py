@@ -16,6 +16,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from selenium.webdriver.common.action_chains import ActionChains
+
 from webdriver_manager.chrome import ChromeDriverManager
 
 import argparse
@@ -175,6 +177,13 @@ class Parser(object):
         wait = WebDriverWait(self.driver, 1)
         time.sleep(1)
 
+    def get_soup_5(self, url):
+        # https://stackoverflow.com/questions/52433411/python-selenium-move-by-offset-doesnt-work
+        self.driver.get(url)
+        time.sleep(5)
+        self.driver.execute_script('window.scrollBy(0, 1000)')
+        time.sleep(2)
+
     def parser_eps(self, stock_num):
         self.stock_num = stock_num
         url = 'https://statementdog.com/analysis/tpe/{}/eps'.format(stock_num)
@@ -279,7 +288,7 @@ class Parser(object):
 #        im_new = Image.new(mode = "RGB", size = (h*4, h*1))
         im_new = None
 
-        for i_state, state in enumerate(['D', 'W', 'zch', 'institutional_invest']):
+        for i_state, state in enumerate(['D', 'W', 'zch', 'tech_index']):
             if state == 'D':
                 url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcw/zcw1_{}.djhtm'.format(stock_num)
             elif state == 'W':
@@ -295,8 +304,15 @@ class Parser(object):
             elif state == 'institutional_invest':
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl.djhtm?a={stock_num}&b=4'
 #                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{stock_num}.djhtm'
-                        
-            soup = self.get_soup_4(url)
+            elif state == 'tech_index':
+                url = f'https://www.wantgoo.com/stock/{stock_num}/technical-chart'
+            else:
+                pass
+                
+            if state == 'tech_index':
+                soup = self.get_soup_5(url)
+            else:
+                soup = self.get_soup_4(url)
             myScreenshot = pyautogui.screenshot()
             myScreenshot_crop = center_crop(myScreenshot, w, h)
             new_w, new_h = myScreenshot_crop.size
