@@ -180,7 +180,7 @@ class Parser(object):
     def get_soup_5(self, url):
         # https://stackoverflow.com/questions/52433411/python-selenium-move-by-offset-doesnt-work
         self.driver.get(url)
-        time.sleep(5)
+        time.sleep(3)
         self.driver.execute_script('window.scrollBy(0, 1000)')
         time.sleep(2)
 
@@ -279,8 +279,8 @@ class Parser(object):
         input('w')
 
     def parser_K_screenshot(self, stock_num, p):
-        def center_crop(im_ori, w, h):
-            x1_new, y1_new, x2_new, y2_new = int(w/2)-int(h*0.25), int(h*0.1), int(w/2)+int(h*0.35), int(h*0.9)
+        def center_crop(im_ori, w, h, ratios):
+            x1_new, y1_new, x2_new, y2_new = int(w*ratios[0]), int(h*ratios[1]), int(w*ratios[2]), int(h*ratios[3])
             return im_ori.crop((x1_new, y1_new, x2_new, y2_new))
             
         w, h = self.pyautogui.size
@@ -290,21 +290,29 @@ class Parser(object):
 
         for i_state, state in enumerate(['D', 'W', 'zch', 'tech_index']):
             if state == 'D':
+                ratios = [0.2, 0.2, 0.7, 0.9]
                 url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcw/zcw1_{}.djhtm'.format(stock_num)
             elif state == 'W':
+                ratios = [0.2, 0.2, 0.7, 0.9]
                 url = f'http://jsjustweb.jihsun.com.tw/Z/ZC/ZCW/ZCW_{stock_num}_{state}.djhtm'
             elif state == 'zcr':
+                ratios = [0.2, 0.2, 0.7, 0.8]
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcr/zcr_{stock_num}.djhtm'
             elif state == 'zch':
+                ratios = [0.2, 0.2, 0.7, 0.8]
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zch/zch_{stock_num}.djhtm'
             elif state == 'news':
+                ratios = [0.2, 0.2, 0.7, 0.8]
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcv/zcv_{stock_num}_E_1.djhtm'
             elif state == 'main_force':
+                ratios = [0.2, 0.2, 0.7, 0.8]
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zco/zco_{stock_num}_2.djhtm'
             elif state == 'institutional_invest':
+                ratios = [0.2, 0.2, 0.7, 0.8]
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl.djhtm?a={stock_num}&b=4'
 #                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{stock_num}.djhtm'
             elif state == 'tech_index':
+                ratios = [0.2, 0.2, 0.7, 0.8]
                 url = f'https://www.wantgoo.com/stock/{stock_num}/technical-chart'
             else:
                 pass
@@ -314,7 +322,7 @@ class Parser(object):
             else:
                 soup = self.get_soup_4(url)
             myScreenshot = pyautogui.screenshot()
-            myScreenshot_crop = center_crop(myScreenshot, w, h)
+            myScreenshot_crop = center_crop(myScreenshot, w, h, ratios)
             new_w, new_h = myScreenshot_crop.size
             if im_new == None:
                 im_new = Image.new(mode = "RGB", size = (new_w*4, new_h*1))
