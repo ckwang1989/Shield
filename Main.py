@@ -39,10 +39,13 @@ def main():
 
     pe_threshold = 14
     volume_threshold = 500
-    top_N = 10
+    top_N = 30
     result_p = f'result/{time.strftime("%Y-%m-%d", time.localtime())}'
     check_folder(result_p)
-    
+#    stock_num = 2002
+#    time.sleep(2)
+#    obj.parser_K_screenshot(stock_num, f'{result_p}/{stock_num}.png')
+#    assert False
     result_topN = {'foreign_inv_volume': {}, 'inv_trust_volume': {}, 'foreign_inv_volume_price': {}, 'inv_trust_volume_price': {}}
 
     with open('stock_num.txt', 'r', encoding="utf-8") as f_r:
@@ -50,13 +53,16 @@ def main():
             stock_num_list.append(line.strip()[0:4])
 
     for i_stock_num, stock_num in enumerate(stock_num_list):
+        print(stock_num)
         if i_stock_num and i_stock_num % 100 == 0:
             print('i_stock_num: ', i_stock_num, ' result_topN: ', result_topN)
-        try:   
+#        try:  
+        if True: 
             price, pe, volume = obj.parser_price(stock_num)
             if price == 0 and pe == 0 and volume == 0: continue
-            result_shareholder = obj.parser_investment_trust(stock_num)
+            result_shareholder = obj.parser_investment_trust(stock_num, 0)
             if result_shareholder == {}: continue
+            if result_shareholder['foreign_inv_volume'] <= 0 or result_shareholder['inv_trust_volume'] <= 0: continue
             for typ in ['foreign_inv_volume', 'inv_trust_volume']:
                 if len(result_topN[typ].keys()) < top_N:
                     if result_shareholder[f'{typ}'] not in result_topN[f'{typ}'].keys():
@@ -86,15 +92,15 @@ def main():
                             result_topN[f'{typ}_price'][result_shareholder[f'{typ}'] * price] = [stock_num]
                         else:
                             result_topN[f'{typ}_price'][result_shareholder[f'{typ}'] * price].append(stock_num)
-        except:
-            print(i_stock_num, stock_num, 'fail')
+#        except:
+#            print(i_stock_num, stock_num, 'fail')
 
     symbols = []
     for typ in result_topN.keys():
         for k in result_topN[typ].keys():
             symbols.extend(result_topN[typ][k])
         
-    for stock_num in symbols:
+    for stock_num in sorted(list(set(symbols))):
         obj.parser_K_screenshot(stock_num, f'{result_p}/{stock_num}.png')
 
 

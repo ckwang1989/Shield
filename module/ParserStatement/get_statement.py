@@ -220,7 +220,10 @@ class Parser(object):
         # 日期	外資	投信	自營商	單日合計	外資	投信	自營商	單日合計	外資	三大法人
         url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{}.djhtm'.format(stock_num)
         soup = self.get_soup_2(url)
-        table = soup.find_all("table", class_="t01")[0]
+        table = soup.find_all("table", class_="t01")
+        if len(table) == 0:
+            return {}
+        table = table[0]
 #        if len(table.find_all("tr")) <= 7+i:
 #            return {}
         table_tr = table.find_all("tr")[7+i]
@@ -268,14 +271,15 @@ class Parser(object):
 
     def parser_K_screenshot(self, stock_num, p):
         def center_crop(im_ori, w, h):
-            x1_new, y1_new, x2_new, y2_new = int(w/2)-int(h/2), 0, int(w/2)+int(h/2), h
+            x1_new, y1_new, x2_new, y2_new = int(w/2)-int(h*0.25), int(h*0.1), int(w/2)+int(h*0.35), int(h*0.9)
             return im_ori.crop((x1_new, y1_new, x2_new, y2_new))
             
         w, h = self.pyautogui.size
-        h = int(h*0.85)
-        im_new = Image.new(mode = "RGB", size = (h*3, h*2))
+#        h = int(h*0.75)
+#        im_new = Image.new(mode = "RGB", size = (h*4, h*1))
+        im_new = None
 
-        for i_state, state in enumerate(['D', 'W', 'zcr', 'zch', 'news', 'institutional_invest']):
+        for i_state, state in enumerate(['D', 'W', 'zch', 'institutional_invest']):
             if state == 'D':
                 url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcw/zcw1_{}.djhtm'.format(stock_num)
             elif state == 'W':
@@ -289,12 +293,19 @@ class Parser(object):
             elif state == 'main_force':
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zco/zco_{stock_num}_2.djhtm'
             elif state == 'institutional_invest':
-                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{stock_num}.djhtm'
+                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl.djhtm?a={stock_num}&b=4'
+#                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{stock_num}.djhtm'
                         
             soup = self.get_soup_4(url)
             myScreenshot = pyautogui.screenshot()
             myScreenshot_crop = center_crop(myScreenshot, w, h)
-            im_new.paste(myScreenshot_crop, (h*int(i_state%3), h*int(i_state/3)))
+            new_w, new_h = myScreenshot_crop.size
+            if im_new == None:
+                im_new = Image.new(mode = "RGB", size = (new_w*4, new_h*1))
+                im_new.paste(myScreenshot_crop, (new_w*int(i_state%4), new_h*int(i_state/4)))
+            else:
+                im_new.paste(myScreenshot_crop, (new_w*int(i_state%4), new_h*int(i_state/4)))
+            
 #            myScreenshot.save(os.path.join(os.path.dirname(p), f'{state}.png')
         im_new.save(p)
 
