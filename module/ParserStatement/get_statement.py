@@ -174,7 +174,7 @@ class Parser(object):
 
     def get_soup_4(self, url):
         self.driver.get(url)
-        wait = WebDriverWait(self.driver, 1)
+#        wait = WebDriverWait(self.driver, 1)
         time.sleep(1)
 
     def get_soup_5(self, url):
@@ -287,45 +287,55 @@ class Parser(object):
 #        h = int(h*0.75)
 #        im_new = Image.new(mode = "RGB", size = (h*4, h*1))
         im_new = None
-
-        for i_state, state in enumerate(['D', 'W', 'zch', 'tech_index']):
+        ratios = [0.35, 0.08, 0.78, 0.85]
+        for i_state, state in enumerate(['tech_index', 'W', 'zch', 'institutional_invest', 'main_force', 'main_force_5', 'main_force_10', 'share_holder']):
             if state == 'D':
-                ratios = [0.2, 0.2, 0.7, 0.9]
+#                ratios = [0.4, 0.2, 0.8, 0.9]
                 url = 'http://jsjustweb.jihsun.com.tw/z/zc/zcw/zcw1_{}.djhtm'.format(stock_num)
             elif state == 'W':
-                ratios = [0.2, 0.2, 0.7, 0.9]
+#                ratios = [0.4, 0.2, 0.8, 0.9]
                 url = f'http://jsjustweb.jihsun.com.tw/Z/ZC/ZCW/ZCW_{stock_num}_{state}.djhtm'
             elif state == 'zcr':
-                ratios = [0.2, 0.2, 0.7, 0.8]
+#                ratios = [0.4, 0.2, 0.6, 0.8]
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcr/zcr_{stock_num}.djhtm'
             elif state == 'zch':
-                ratios = [0.2, 0.2, 0.7, 0.8]
+#                ratios = [0.4, 0.2, 0.6, 0.8]
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zch/zch_{stock_num}.djhtm'
             elif state == 'news':
-                ratios = [0.2, 0.2, 0.7, 0.8]
+#                ratios = [0.4, 0.2, 0.6, 0.8]
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcv/zcv_{stock_num}_E_1.djhtm'
             elif state == 'main_force':
-                ratios = [0.2, 0.2, 0.7, 0.8]
+#                ratios = [0.4, 0.2, 0.6, 0.8]
+                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zco/zco_{stock_num}.djhtm'
+            elif state == 'main_force_5':
+#                ratios = [0.4, 0.2, 0.6, 0.8]
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zco/zco_{stock_num}_2.djhtm'
+            elif state == 'main_force_10':
+#                ratios = [0.4, 0.2, 0.6, 0.8]
+                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zco/zco_{stock_num}_3.djhtm'
             elif state == 'institutional_invest':
-                ratios = [0.2, 0.2, 0.7, 0.8]
+#                ratios = [0.4, 0.2, 0.6, 0.8]
                 url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl.djhtm?a={stock_num}&b=4'
-#                url = f'http://jsjustweb.jihsun.com.tw/z/zc/zcl/zcl_{stock_num}.djhtm'
             elif state == 'tech_index':
-                ratios = [0.2, 0.2, 0.7, 0.8]
+#                ratios = [0.5, 0.0, 1.0, 0.8]
                 url = f'https://www.wantgoo.com/stock/{stock_num}/technical-chart'
+            elif state == 'share_holder':
+                url = f'https://norway.twsthr.info/StockHolders.aspx?stock={stock_num}'
             else:
-                pass
-                
+                pass   
             if state == 'tech_index':
                 soup = self.get_soup_5(url)
+            elif state == 'share_holder':
+                soup = self.get_soup_4(url)
+                self.driver.find_element_by_xpath('//*[@id="liC3"]').click()
+                time.sleep(1)
             else:
                 soup = self.get_soup_4(url)
             myScreenshot = pyautogui.screenshot()
             myScreenshot_crop = center_crop(myScreenshot, w, h, ratios)
             new_w, new_h = myScreenshot_crop.size
             if im_new == None:
-                im_new = Image.new(mode = "RGB", size = (new_w*4, new_h*1))
+                im_new = Image.new(mode = "RGB", size = (new_w*4, new_h*2))
                 im_new.paste(myScreenshot_crop, (new_w*int(i_state%4), new_h*int(i_state/4)))
             else:
                 im_new.paste(myScreenshot_crop, (new_w*int(i_state%4), new_h*int(i_state/4)))
