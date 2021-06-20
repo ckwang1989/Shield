@@ -62,7 +62,7 @@ def main():
             if price == 0 and pe == 0 and volume == 0: continue
             result_shareholder = obj.parser_investment_trust(stock_num, 0)
             if result_shareholder == {}: continue
-            if result_shareholder['foreign_inv_volume'] <= 0 or result_shareholder['inv_trust_volume'] <= 0: continue
+            if result_shareholder['foreign_inv_volume'] <= 0 and result_shareholder['inv_trust_volume'] <= 0: continue
             for typ in ['foreign_inv_volume', 'inv_trust_volume']:
                 if len(result_topN[typ].keys()) < top_N:
                     if result_shareholder[f'{typ}'] not in result_topN[f'{typ}'].keys():
