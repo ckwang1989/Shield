@@ -9,6 +9,7 @@ from module.XMLWriter.XMLGenerator import xml_writer
 
 import time
 import copy
+import pickle
 
 def check_folder(p):
     if not os.path.exists(p):
@@ -132,7 +133,7 @@ def main():
 #            print(i_stock_num, stock_num, 'fail')
     save_pickle(result_pickle_p, result_topN)
     result_topN = load_pickle(result_pickle_p)
-    
+
     symbols = []
     for typ in result_topN.keys():
         for k in result_topN[typ].keys():
