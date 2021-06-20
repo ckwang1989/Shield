@@ -14,6 +14,14 @@ def check_folder(p):
     if not os.path.exists(p):
         os.makedirs(p)
 
+def save_pickle(p, result):
+    with open(p, 'wb') as handle:
+        pickle.dump(result, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+def load_pickle(p):
+    with open(p, 'rb') as f:
+        result = pickle.load(f)
+    return result
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -41,6 +49,7 @@ def main():
     volume_threshold = 500
     top_N = 30
     result_p = f'result/{time.strftime("%Y-%m-%d", time.localtime())}'
+    result_pickle_p = f'result/{time.strftime("%Y-%m-%d", time.localtime())}.pkl'
     check_folder(result_p)
 #    stock_num = 2002
 #    time.sleep(2)
@@ -121,7 +130,9 @@ def main():
 
 #        except:
 #            print(i_stock_num, stock_num, 'fail')
-
+    save_pickle(result_pickle_p, result_topN)
+    result_topN = load_pickle(result_pickle_p)
+    
     symbols = []
     for typ in result_topN.keys():
         for k in result_topN[typ].keys():
