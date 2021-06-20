@@ -46,7 +46,8 @@ def main():
 #    time.sleep(2)
 #    obj.parser_K_screenshot(stock_num, f'{result_p}/{stock_num}.png')
 #    assert False
-    result_topN = {'foreign_inv_volume': {}, 'inv_trust_volume': {}, 'foreign_inv_volume_price': {}, 'inv_trust_volume_price': {}}
+    result_topN = {'foreign_inv_volume': {}, 'inv_trust_volume': {}, 'foreign_inv_volume_price': {}, 'inv_trust_volume_price': {}, \
+                    'foreign_inv_volume/totalvolume': {}, 'inv_trust_volume/totalvolume': {}, 'foreign_inv_volume_price/share': {}, 'inv_trust_volume_price/share': {}}
 
     with open('stock_num.txt', 'r', encoding="utf-8") as f_r:
         for line in f_r.readlines():
@@ -58,7 +59,7 @@ def main():
             print('i_stock_num: ', i_stock_num, ' result_topN: ', result_topN)
 #        try:  
         if True: 
-            price, pe, volume = obj.parser_price(stock_num)
+            price, pe, volume, share_capital = obj.parser_price(stock_num)
             if price == 0 and pe == 0 and volume == 0: continue
             result_shareholder = obj.parser_investment_trust(stock_num, 0)
             if result_shareholder == {}: continue
@@ -74,7 +75,17 @@ def main():
                         result_topN[f'{typ}_price'][result_shareholder[f'{typ}'] * price] = [stock_num]
                     else:
                         result_topN[f'{typ}_price'][result_shareholder[f'{typ}'] * price].append(stock_num)
-                        
+
+                    if (result_shareholder[f'{typ}'] / float(volume)) not in result_topN[f'{typ}/totalvolume'].keys():
+                        result_topN[f'{typ}/totalvolume'][result_shareholder[f'{typ}'] / float(volume)] = [stock_num]
+                    else:
+                        result_topN[f'{typ}/totalvolume'][result_shareholder[f'{typ}'] / float(volume)].append(stock_num)
+
+                    if (result_shareholder[f'{typ}'] * price / float(share_capital)) not in result_topN[f'{typ}_price/share'].keys():
+                        result_topN[f'{typ}_price/share'][result_shareholder[f'{typ}'] * price / float(share_capital)] = [stock_num]
+                    else:
+                        result_topN[f'{typ}_price/share'][result_shareholder[f'{typ}'] * price / float(share_capital)].append(stock_num)
+
                 else:
                     volume_min = sorted(result_topN[f'{typ}'])[0]
                     if result_shareholder[f'{typ}'] > volume_min:
@@ -84,7 +95,6 @@ def main():
                         else:
                             result_topN[f'{typ}'][result_shareholder[f'{typ}']].append(stock_num)
 
-
                     volume_price_min = sorted(result_topN[f'{typ}_price'])[0]
                     if (result_shareholder[f'{typ}'] * price) > volume_price_min:
                         result_topN[f'{typ}_price'].pop(volume_price_min)
@@ -92,6 +102,23 @@ def main():
                             result_topN[f'{typ}_price'][result_shareholder[f'{typ}'] * price] = [stock_num]
                         else:
                             result_topN[f'{typ}_price'][result_shareholder[f'{typ}'] * price].append(stock_num)
+                    
+                    divide_totalvolume_min = sorted(result_topN[f'{typ}/totalvolume'])[0]
+                    if (result_shareholder[f'{typ}'] / float(volume)) > divide_totalvolume_min:
+                        result_topN[f'{typ}/totalvolume'].pop(divide_totalvolume_min)
+                        if (result_shareholder[f'{typ}'] / float(volume)) not in result_topN[f'{typ}/totalvolume'].keys():
+                            result_topN[f'{typ}/totalvolume'][result_shareholder[f'{typ}'] / float(volume)] = [stock_num]
+                        else:
+                            result_topN[f'{typ}/totalvolume'][result_shareholder[f'{typ}'] / float(volume)].append(stock_num)
+
+                    volume_price_divshare_min = sorted(result_topN[f'{typ}_price/share'])[0]
+                    if (result_shareholder[f'{typ}'] * price / float(share_capital)) > volume_price_divshare_min:
+                        result_topN[f'{typ}_price/share'].pop(volume_price_divshare_min)
+                        if (result_shareholder[f'{typ}'] * price / float(share_capital)) not in result_topN[f'{typ}_price/share'].keys():
+                            result_topN[f'{typ}_price/share'][result_shareholder[f'{typ}'] * price / float(share_capital)] = [stock_num]
+                        else:
+                            result_topN[f'{typ}_price/share'][result_shareholder[f'{typ}'] * price / float(share_capital)].append(stock_num)
+
 #        except:
 #            print(i_stock_num, stock_num, 'fail')
 
@@ -101,7 +128,16 @@ def main():
             symbols.extend(result_topN[typ][k])
         
     for stock_num in sorted(list(set(symbols))):
-        obj.parser_K_screenshot(stock_num, f'{result_p}/{stock_num}.png')
+        ranks = []
+        for k in result_topN.keys():
+            keys = result_topN[k]
+            values = [b for a in list(sorted(keys.keys(), reverse = True)) for b in keys[a]]
+            if stock_num in values:
+                rank = values.index(stock_num)
+            else:
+                rank = -1
+            ranks.append(str(rank))
+        obj.parser_K_screenshot(stock_num, f'{result_p}/{stock_num}.png', ranks)
 
 
 if __name__ == '__main__':

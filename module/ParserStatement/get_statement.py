@@ -28,6 +28,9 @@ from selenium.webdriver.support.ui import Select
 import pyautogui
 
 from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw 
+font = ImageFont.truetype("Aaargh.ttf", 30)
 
 class Parser(object):
     # all_dict:
@@ -208,22 +211,26 @@ class Parser(object):
         soup = self.get_soup_2(url)
         table = soup.find_all("table", class_="t01")
         if len(table) == 0: 
-            return 0, 0, 0
+            return 0, 0, 0, 0
         else:
             table = table[0]
-        volumes = []
 
         table_tr_row1 = table.find_all("tr")[1]
-        tmp = self.cancel_point(table_tr_row1.find_all("td")[1].text)
+        tmp = self.cancel_point(table_tr_row1.find_all("td")[7].text)
         price = float(tmp) if self.is_value(tmp) else -1
 
         table_tr_row3 = table.find_all("tr")[3]
         tmp = self.cancel_point(table_tr_row3.find_all("td")[1].text)
         pe = float(tmp) if self.is_value(tmp) else -1
-
         tmp = self.cancel_point(table_tr_row3.find_all("td")[7].text)
         volume = float(tmp) if self.is_value(tmp) else -1
-        return price, pe, volume
+
+        table_tr_row13 = table.find_all("tr")[13]
+
+        tmp = self.cancel_point(table_tr_row13.find_all("td")[1].text)
+        share_capital = float(tmp) if self.is_value(tmp) else -1
+
+        return price, pe, volume, share_capital
 
     def parser_investment_trust(self, stock_num, i=0):
         # 日期	外資	投信	自營商	單日合計	外資	投信	自營商	單日合計	外資	三大法人
@@ -233,8 +240,9 @@ class Parser(object):
         if len(table) == 0:
             return {}
         table = table[0]
-#        if len(table.find_all("tr")) <= 7+i:
-#            return {}
+        if len(table.find_all("tr")) <= 8:
+            return {}
+
         table_tr = table.find_all("tr")[7+i]
         
         date = table_tr.find_all("td")[0].text
@@ -278,7 +286,7 @@ class Parser(object):
             data.to_csv(file_name, index=False)
         input('w')
 
-    def parser_K_screenshot(self, stock_num, p):
+    def parser_K_screenshot(self, stock_num, p, ranks):
         def center_crop(im_ori, w, h, ratios):
             x1_new, y1_new, x2_new, y2_new = int(w*ratios[0]), int(h*ratios[1]), int(w*ratios[2]), int(h*ratios[3])
             return im_ori.crop((x1_new, y1_new, x2_new, y2_new))
@@ -341,11 +349,9 @@ class Parser(object):
                 im_new.paste(myScreenshot_crop, (new_w*int(i_state%4), new_h*int(i_state/4)))
             
 #            myScreenshot.save(os.path.join(os.path.dirname(p), f'{state}.png')
+        draw = ImageDraw.Draw(im_new)
+        draw.text((0, 0), f"{'v - p - v/total_p - vp/share'}\n{'  '.join(ranks)}", (0, 0, 0), font=font)
         im_new.save(p)
-
-
-        
-
 
     def parser_book_value(self, stock_num):
         url = 'https://statementdog.com/analysis/tpe/{}/nav'.format(stock_num)
