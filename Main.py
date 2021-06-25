@@ -62,13 +62,10 @@ def main():
     with open('stock_num.txt', 'r', encoding="utf-8") as f_r:
         for line in f_r.readlines():
             stock_num_list.append(line.strip()[0:4])
-
-    for i_stock_num, stock_num in enumerate(stock_num_list):
-        print(stock_num)
-        if i_stock_num and i_stock_num % 100 == 0:
-            print('i_stock_num: ', i_stock_num, ' result_topN: ', result_topN)
-#        try:  
-        if True: 
+    if not os.path.exists(result_pickle_p): 
+        for i_stock_num, stock_num in enumerate(stock_num_list):
+            if i_stock_num and i_stock_num % 100 == 0:
+                print('i_stock_num: ', i_stock_num, ' result_topN: ', result_topN) 
             price, pe, volume, share_capital = obj.parser_price(stock_num)
             if price == 0 and pe == 0 and volume == 0: continue
             result_shareholder = obj.parser_investment_trust(stock_num, 0)
@@ -128,18 +125,18 @@ def main():
                             result_topN[f'{typ}_price/share'][result_shareholder[f'{typ}'] * price / float(share_capital)] = [stock_num]
                         else:
                             result_topN[f'{typ}_price/share'][result_shareholder[f'{typ}'] * price / float(share_capital)].append(stock_num)
+        save_pickle(result_pickle_p, result_topN)
+        result_topN = load_pickle(result_pickle_p)
+    else:
+        result_topN = load_pickle(result_pickle_p)
 
-#        except:
-#            print(i_stock_num, stock_num, 'fail')
-    save_pickle(result_pickle_p, result_topN)
-    result_topN = load_pickle(result_pickle_p)
-
+    done_symbols = [symbol[:-4] for symbol in os.listdir(result_p)]
     symbols = []
     for typ in result_topN.keys():
         for k in result_topN[typ].keys():
             symbols.extend(result_topN[typ][k])
-        
-    for stock_num in sorted(list(set(symbols))):
+
+    for stock_num in sorted(list(set(symbols)-set(done_symbols))):
         ranks = []
         for k in result_topN.keys():
             keys = result_topN[k]
