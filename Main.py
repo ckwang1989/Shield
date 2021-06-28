@@ -30,9 +30,9 @@ def get_args():
         default= 'data')
     parser.add_argument('--chrome_driver_path', type=str, \
         default= '/usr/local/share/chromedriver')
-    parser.add_argument('--account', type=str, required=True, \
+    parser.add_argument('--account', type=str, \
         default= '1')
-    parser.add_argument('--password', type=str, required=True, \
+    parser.add_argument('--password', type=str, \
         default= '2')
     parser.add_argument('--config_path', type=str)
     return parser.parse_args()
