@@ -31,9 +31,9 @@ def get_args():
     parser.add_argument('--chrome_driver_path', type=str, \
         default= '/usr/local/share/chromedriver')
     parser.add_argument('--account', type=str, required=True, \
-        default= '---')
+        default= '1')
     parser.add_argument('--password', type=str, required=True, \
-        default= '---')
+        default= '2')
     parser.add_argument('--config_path', type=str)
     return parser.parse_args()
 
@@ -136,17 +136,25 @@ def main():
         for k in result_topN[typ].keys():
             symbols.extend(result_topN[typ][k])
 
-    for stock_num in sorted(list(set(symbols)-set(done_symbols))):
+    stock_nums = sorted(list(set(symbols)-set(done_symbols)))
+    fail_symbols = []
+    for stock_num in stock_nums:
+        fail_count = 0
         ranks = []
-        for k in result_topN.keys():
-            keys = result_topN[k]
-            values = [b for a in list(sorted(keys.keys(), reverse = True)) for b in keys[a]]
-            if stock_num in values:
-                rank = values.index(stock_num)
-            else:
-                rank = -1
-            ranks.append(str(rank))
-        obj.parser_K_screenshot(stock_num, f'{result_p}/{stock_num}.png', ranks)
+        while fail_count < 5:
+            try:    
+                for k in result_topN.keys():
+                    keys = result_topN[k]
+                    values = [b for a in list(sorted(keys.keys(), reverse = True)) for b in keys[a]]
+                    if stock_num in values:
+                        rank = values.index(stock_num)
+                    else:
+                        rank = -1
+                    ranks.append(str(rank))
+                obj.parser_K_screenshot(stock_num, f'{result_p}/{stock_num}.png', ranks)
+            except:
+                fail_count += 1
+                fail_symbols.append(stock_num)
 
 
 if __name__ == '__main__':
