@@ -152,6 +152,7 @@ def main():
                         rank = -1
                     ranks.append(str(rank))
                 obj.parser_K_screenshot(stock_num, f'{result_p}/{stock_num}.png', ranks)
+                break
             except:
                 fail_count += 1
                 fail_symbols.append(stock_num)
